@@ -99,6 +99,20 @@ screencapture -i store/screenshot-1.png
 sips -z 800 1280 store/screenshot-1.png   # only if the capture is already 16:10; otherwise crop first
 ```
 
+## Observed (hallway test, 9 Sep 2026, five testers, shared bound-script sheet)
+
+Recorded as reported; each becomes a Phase 1 item or a documented non-issue.
+
+| # | Observation | Reading |
+|---|---|---|
+| O1 | `=GC_FACTOR` takes 3–5 s to show a value. | API measures 0.2–1.1 s per call (edge HIT ≈0.2–0.4 s, MISS ≈0.8 s, keyed ≈0.6 s); the rest is Apps Script's per-call server round trip, inherent to custom functions. Mitigations: ranges (one call for many cells, already supported), sidebar inserts could write the value alongside the formula, and the cell can say "Loading…" is normal. |
+| O2 | Extensions → GreenCalculus sometimes missing until the tab is refreshed. | The menu is built by `onOpen`; a tab opened before the script was shared/authorised, or before the menu finished loading, shows nothing until reload. Marketplace installs open the sidebar directly; tester card should say "wait 5 s or reload". |
+| O3 | `GC_CITE` output is very long for a cell. | By design (a full citation), but the sheet needs a short form: `GC_CITE(key, "short")` and a HYPERLINK-wrapped insert (`=HYPERLINK(GC_FACTOR(k,"proof"), GC_CITE(k,"short"))`) — custom functions cannot return links themselves, HYPERLINK() can wrap them. |
+| O4 | Could hyperlinks be in the sheet? | Yes via HYPERLINK() around our functions (see O3); the sidebar buttons can insert that. |
+| O5 | Several testers did not understand why they would use it rather than searching online. | Positioning gap, not a UI gap: the value is the exact publisher cell + version + citation, live-updated; searching gives a number with no provenance that goes stale. Onboarding must say this in one line; the audience is people who report or audit numbers, not the general public. |
+| O6 | Onboarding felt heavy; wanted an easier, cleaner first run. | Welcome panel exists; next: open the sidebar automatically on first use, a one-line "why", and a "Build me a starter sheet" button. |
+| O7 | Should values be centred/bold by default? | Keep Sheets' native alignment (numbers right, text left) and leave formatting to the user; only bold the header row of blocks we insert. |
+
 ## Publish to the Google Workspace Marketplace (owner steps)
 
 1. Create a Google Cloud project; link it to the Apps Script project (Project Settings → GCP project number).
