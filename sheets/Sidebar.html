@@ -96,7 +96,7 @@
 <div id="msg"></div>
 
 <footer>
-  <a id="docs" href="#">Docs</a> · <a id="factors" href="#">All factors</a> · <a id="terms" href="#">Terms</a><br>
+  <a id="docs" href="#">Docs</a> · <a id="factors" href="#">All factors</a> · <a id="terms" href="#">Terms</a> · <a id="intro" href="#" target="_self">Show intro</a><br>
   Values in shared client deliverables are redistribution — the Business plan covers it.
 </footer>
 
@@ -176,6 +176,10 @@
   });
   $('skipBtn').addEventListener('click', function(){
     google.script.run.withSuccessHandler(function(st){ S=st; render(); msg(''); }).withFailureHandler(fail).gcDismissWelcome();
+  });
+  $('intro').addEventListener('click', function(e){
+    e.preventDefault();
+    google.script.run.withSuccessHandler(function(st){ S=st; render(); window.scrollTo(0,0); msg(''); }).withFailureHandler(fail).gcShowWelcomeAgain();
   });
   $('pinBtn').addEventListener('click', function(){ pin(''); });
   $('pinToBtn').addEventListener('click', function(){ pin($('pinVer').value); });
