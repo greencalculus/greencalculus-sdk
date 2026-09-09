@@ -22,8 +22,8 @@
  */
 
 var GC_CACHE_SECONDS = 6 * 60 * 60; // 6h is the CacheService maximum
-var GC_UA = 'greencalculus-sheets/0.2.0';
-var GC_CLIENT = 'sheets/0.2.0'; // X-GC-Client — how the funnel attributes add-in traffic
+var GC_UA = 'greencalculus-sheets/0.3.0';
+var GC_CLIENT = 'sheets/0.3.0'; // X-GC-Client — how the funnel attributes add-in traffic
 var GC_DOCS_URL = 'https://greencalculus.com/developers/docs/?ref=sheets';
 var GC_FACTORS_URL = 'https://greencalculus.com/factors/?ref=sheets';
 var GC_TERMS_URL = 'https://greencalculus.com/terms/?ref=sheets';

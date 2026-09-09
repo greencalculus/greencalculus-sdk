@@ -55,7 +55,9 @@ export interface GridIntensityResult {
   version: string | null;
   /** Public proof page pinned to that version. */
   proofUrl: string | null;
-  /** One ready-to-paste citation line. */
+  /** The factor's name as the corpus states it. */
+  name: string | null;
+  /** One ready-to-paste citation line — the API's `citation.text`, verbatim. */
   citation: string;
 }
 
@@ -66,16 +68,24 @@ export interface GridIntensityOptions {
 
 const VERIFY = "https://verify.greencalculus.com";
 
-/** Assemble the citation line from what a factor row carries. */
+/**
+ * The citation line. The API builds the canonical one on every row
+ * (`citation.text`, since 2026-09-09) and `gridIntensity` prints it verbatim;
+ * this assembles the SAME format only for a row that arrives without it:
+ *   <name>. <source — publisher>, cell <cell>, retrieved <date>.
+ *   via GreenCalculus data version <v>, factor <key>. <proof URL>
+ */
 export function citationFor(r: {
-  key: string; version: string | null; proofUrl: string | null;
+  key: string; name?: string | null; version: string | null; proofUrl: string | null;
   source: { id: string | null; cellRef: string | null; retrieved: string | null; attribution: string | null };
 }): string {
-  const parts: string[] = [r.source.attribution || r.source.id || "Unknown source"];
-  const where: string[] = [];
-  if (r.source.cellRef) where.push(`cell ${r.source.cellRef}`);
-  if (r.source.retrieved) where.push(`retrieved ${r.source.retrieved}`);
-  if (where.length) parts.push(where.join(", "));
+  const parts: string[] = [];
+  if (r.name) parts.push(r.name);
+  const who: string[] = [r.source.attribution || r.source.id || ""];
+  if (r.source.cellRef) who.push(`cell ${r.source.cellRef}`);
+  if (r.source.retrieved) who.push(`retrieved ${r.source.retrieved}`);
+  const whoLine = who.filter(Boolean).join(", ");
+  if (whoLine) parts.push(whoLine);
   parts.push(`via GreenCalculus${r.version ? ` data version ${r.version}` : ""}, factor ${r.key}`);
   return parts.join(". ") + "." + (r.proofUrl ? ` ${r.proofUrl}` : "");
 }
@@ -122,11 +132,14 @@ export async function gridIntensity(
   const s = row.source ?? {};
   const lic = res.meta?.licences?.[s.id] ?? {};
   const version: string | null = res.meta?.gc_version ?? null;
-  const proofUrl = version ? `${VERIFY}/${row.key}@${version}` : null;
+  const serverCitation: { text?: unknown; proof_url?: unknown } | null = row.citation && typeof row.citation === "object" ? row.citation : null;
+  const proofUrl: string | null = (typeof serverCitation?.proof_url === "string" && serverCitation.proof_url)
+    || (version ? `${VERIFY}/${row.key}@${version}` : null);
   if (typeof f.value !== "number" || !f.unit) throw new Error(`Row ${row.key} carries no numeric value`);
   const out: GridIntensityResult = {
     country: iso3,
     key: row.key,
+    name: row.name ?? null,
     basis,
     gco2PerKwh: toGramsPerKwh(f.value, f.unit),
     value: f.value,
@@ -145,7 +158,7 @@ export async function gridIntensity(
     proofUrl,
     citation: "",
   };
-  out.citation = citationFor(out);
+  out.citation = typeof serverCitation?.text === "string" && serverCitation.text ? serverCitation.text : citationFor(out);
   return out;
 }
 

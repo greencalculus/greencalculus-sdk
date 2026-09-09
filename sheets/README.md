@@ -10,7 +10,7 @@ Keyless by default — the GreenCalculus corpus is open to read. An API key (fre
 |---|---|
 | `=GC_FACTOR(key, [field], [as_of])` | the value, or one field: `unit` `name` `source` `publisher` `cell` `retrieved` `licence` `version` `gwp` `basis` `scope` `citation` `proof`. `key` may be a range. |
 | `=GC_FACTOR_ROW(key, [headers])` | one row: value · unit · source · cell · version · citation |
-| `=GC_CITE(key)` | the citation line, e.g. *UK Government GHG Conversion Factors 2026 — DESNZ. cell 'UK electricity'!E25, retrieved 2026-06-18. via GreenCalculus data version 2026.186, factor grid.gbr… https://verify.greencalculus.com/grid.gbr.electricity.location_based@2026.186* |
+| `=GC_CITE(key)` | the citation line, printed exactly as the API returns it (`citation.text`), e.g. *UK grid electricity — location-based (generation). UK Government GHG Conversion Factors 2026 — Department for Energy Security and Net Zero (DESNZ), cell 'UK electricity'!E25, retrieved 2026-06-18. via GreenCalculus data version 2026.186, factor grid.gbr… https://verify.greencalculus.com/grid.gbr.electricity.location_based@2026.186* |
 | `=GC_EMISSIONS(key, quantity)` | quantity × factor (kWh × kg CO2e/kWh = kg CO2e). Ranges fill a column. |
 | `=GC_SEARCH("diesel litre", [limit])` | key · name · value · unit · source, one match per row |
 | `=GC_VERSION()` | the data version this workbook's formulas read: the pin if set, else current |
@@ -47,7 +47,7 @@ Why a named range and not a setting: custom functions may read the spreadsheet b
 
 ```
 appsscript.json      manifest — V8, external_request + currentonly + container.ui scopes, urlFetchWhitelist
-src/core.js          pure logic (URLs, extraction, citation, batching, worked-example block) — runs in Apps Script AND Node
+src/core.js          pure logic (URLs, extraction, citation passthrough + fallback, batching, worked-example block) — runs in Apps Script AND Node
 src/Code.js          Apps Script layer: custom functions, sidebar server functions, workbook pin, fetch + cache
 Sidebar.html         the sidebar (HtmlService) — root, not src/: nested HTML fails to load
 test/core.test.mjs   unit tests:  npm test

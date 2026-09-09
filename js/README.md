@@ -87,9 +87,9 @@ const gb = await gridIntensity(gc, "GBR");          // Ember lifecycle row, all 
 const est = new co2({ model: "swd", version: 4 })
   .perVisitTrace(2_000_000, false, toCo2jsOptions(gb));
 console.log(est.co2, "g CO2e per visit");   // a number
-console.log(gb.citation);
-// UK … Ember Yearly Electricity Data (2025 release) — Ember Climate. cell …, retrieved …
-// via GreenCalculus data version 2026.186, factor grid.gbr.electricity.lifecycle_intensity.
+console.log(gb.citation);                    // the API's citation.text, verbatim
+// UK grid electricity — lifecycle intensity. Ember Yearly Electricity Data (2025 release) — Ember Climate,
+// cell …, retrieved …. via GreenCalculus data version 2026.186, factor grid.gbr.electricity.lifecycle_intensity.
 // https://verify.greencalculus.com/grid.gbr.electricity.lifecycle_intensity@2026.186
 ```
 
