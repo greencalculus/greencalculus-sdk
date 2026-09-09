@@ -84,11 +84,25 @@ function gcExtract(json, key) {
   } else if (json.factor && json.factor.key === key) {
     row = json.factor;
     if (json.served_version) version = json.served_version;
-    if (json.attribution) {
-      attribution = json.attribution.text || null;
-      proof = json.attribution.url || null;
+    // A pin the archive cannot honour: the lookup route serves TODAY's row and
+    // labels it. For a workbook pinned for reproducibility that label is not
+    // enough — refuse, so the cell says why rather than showing a current
+    // value in a workbook that claims a past version.
+    if (json.version_pin && json.version_pin.matched === false) {
+      var vp = json.version_pin;
+      var asked = vp.as_of_requested || vp.as_of || '?';
+      var floor = Array.isArray(vp.archived_versions) && vp.archived_versions.length ? ' (archive starts ' + vp.archived_versions[0] + ')' : '';
+      return { __error: 'version ' + asked + ' is not archived' + floor + ' — pin to an archived version, current is ' + vp.current };
     }
-    if (json.provenance && json.provenance.publisher) row.__publisher = json.provenance.publisher;
+    // `attribution` here is the credit GreenCalculus requires of the caller,
+    // NOT the publisher's. The publisher attribution is in `provenance`.
+    if (json.attribution && json.attribution.url) proof = json.attribution.url;
+    var pv = json.provenance || {};
+    if (pv.source_name || pv.publisher) {
+      attribution = [pv.source_name, pv.publisher].filter(function (x) { return !!x; }).join(' — ');
+    }
+    if (pv.publisher) row.__publisher = pv.publisher;
+    if (pv.licence && !(row.licence && row.licence.name)) row.licence = { name: pv.licence };
   } else {
     return null;
   }

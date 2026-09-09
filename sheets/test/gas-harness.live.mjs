@@ -84,6 +84,7 @@ if (process.env.GC_API_KEY) {
   show('GC_FACTOR(key,"version","2026.150")', ctx.GC_FACTOR(K, 'version', '2026.150'));
   show('GC_FACTOR(key,"value","2026.150")', ctx.GC_FACTOR(K, 'value', '2026.150'));
   show('GC_CITE pinned 2026.150', ctx.GC_CITE(K));
+  show('GC_FACTOR unarchived pin 2026.100', ctx.GC_FACTOR(K, 'value', '2026.100'));
   ctx.gcPinWorkbook('2026.150'); show('pin via sidebar → GC_VERSION()', ctx.GC_VERSION());
   show('GC_FACTOR_ROW pinned', ctx.GC_FACTOR_ROW(K));
   ctx.gcUnpinWorkbook();

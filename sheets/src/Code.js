@@ -273,7 +273,8 @@ function gcFetchBatch_(keys, apiKey, asOf, out, toCache) {
     try { body = JSON.parse(res.getContentText()); } catch (e) { body = null; }
     if (code === 200 && body) {
       var rec = gcExtract(body, k);
-      if (rec) { out[k] = rec; toCache[cacheKey(k)] = JSON.stringify(rec); }
+      if (rec && rec.__error) { out[k] = rec; }
+      else if (rec) { out[k] = rec; toCache[cacheKey(k)] = JSON.stringify(rec); }
       else if (Array.isArray(body.factors)) { out[k] = null; }
       else { out[k] = { __error: 'unexpected response shape' }; }
     } else if (code === 404) {

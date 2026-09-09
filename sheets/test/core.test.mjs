@@ -21,11 +21,14 @@ const browse = {
 };
 
 // The keyed single-key lookup shape (from the OpenAPI FactorLookup schema).
+// Captured live 2026-09-09: `attribution` is OUR required credit, the
+// publisher lives in `provenance`.
 const lookup = {
   meta: { gc_version: '2026.186' }, served_version: '2026.181',
   factor: browse.factors[1],
-  attribution: { text: 'UK Government GHG Conversion Factors 2026 — DESNZ', url: 'https://verify.greencalculus.com/' + KEY + '@2026.181', required: true },
-  provenance: { publisher: 'DESNZ' },
+  attribution: { text: 'Emission data & calculations by GreenCalculus — greencalculus.com', url: 'https://verify.greencalculus.com/' + KEY + '@2026.181', required: true },
+  provenance: { source_id: 'DEFRA_2026', source_name: 'UK Government GHG Conversion Factors 2026', publisher: 'Department for Energy Security and Net Zero (DESNZ)',
+    cell_ref: "'UK electricity'!E25", retrieved: '2026-06-18', licence: 'Open Government Licence v3.0' },
 };
 
 test('keyless URL uses the open browse route with an exact prefix', () => {
@@ -54,7 +57,13 @@ test('extract from the keyed lookup prefers served_version and the API proof URL
   const r = core.gcExtract(lookup, KEY);
   assert.equal(r.version, '2026.181');
   assert.equal(r.proof, 'https://verify.greencalculus.com/' + KEY + '@2026.181');
-  assert.equal(r.attribution, 'UK Government GHG Conversion Factors 2026 — DESNZ');
+  assert.equal(r.attribution, 'UK Government GHG Conversion Factors 2026 — Department for Energy Security and Net Zero (DESNZ)');
+  assert.equal(r.licence, 'Open Government Licence v3.0');
+  assert.ok(!core.gcCitation(r).includes('Emission data & calculations by GreenCalculus'), 'our own credit must not pose as the publisher');
+});
+test('a pin the archive cannot honour is refused, not relabelled', () => {
+  const r = core.gcExtract({ ...lookup, served_version: '2026.186', version_pin: { as_of_requested: '2026.100', current: '2026.186', matched: false, archived_versions: ['2026.111', '2026.112'] } }, KEY);
+  assert.match(r.__error, /2026\.100 is not archived \(archive starts 2026\.111\)/);
 });
 test('citation line carries attribution, cell, retrieval, version, key and proof', () => {
   const c = core.gcCitation(core.gcExtract(browse, KEY));
