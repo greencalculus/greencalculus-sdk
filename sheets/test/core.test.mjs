@@ -63,7 +63,7 @@ test('extract from the keyed lookup prefers served_version and the API proof URL
 });
 test('a pin the archive cannot honour is refused, not relabelled', () => {
   const r = core.gcExtract({ ...lookup, served_version: '2026.186', version_pin: { as_of_requested: '2026.100', current: '2026.186', matched: false, archived_versions: ['2026.111', '2026.112'] } }, KEY);
-  assert.match(r.__error, /2026\.100 is not archived \(archive starts 2026\.111\)/);
+  assert.match(r.__error, /Version 2026\.100 is not in the archive \(it starts at 2026\.111\) — pin to 2026\.111 or later, or unpin/);
 });
 test('citation line carries attribution, cell, retrieval, version, key and proof', () => {
   const c = core.gcCitation(core.gcExtract(browse, KEY));
@@ -93,9 +93,11 @@ test('mapGrid returns scalar for scalar input, grid for range input, readable mi
   const recs = { [KEY]: core.gcExtract(browse, KEY) };
   assert.equal(core.gcMapGrid(core.gcCollectKeys(KEY), recs, r => r.value), 0.13096);
   const out = core.gcMapGrid(core.gcCollectKeys([[KEY, 'grid.x'], ['']]), recs, r => r.value);
-  assert.deepEqual(out, [[0.13096, '#GC_UNKNOWN_KEY: grid.x'], ['']]);
-  const err = core.gcMapGrid(core.gcCollectKeys(KEY), { [KEY]: { __error: 'HTTP 503' } }, r => r.value);
-  assert.equal(err, '#GC_ERROR: HTTP 503');
+  assert.equal(out[0][0], 0.13096);
+  assert.match(out[0][1], /^#GC_UNKNOWN_KEY: No factor called "grid\.x" — search for it in the sidebar/);
+  assert.deepEqual(out[1], ['']);
+  const err = core.gcMapGrid(core.gcCollectKeys(KEY), { [KEY]: { __error: 'x' } }, r => r.value);
+  assert.equal(err, '#GC_ERROR: x');
 });
 
 test('version normalisation accepts human forms and rejects junk', () => {
@@ -126,4 +128,30 @@ test('gcExampleBlock: formulas point at the key and quantity cells wherever the 
   assert.deepEqual(b.formulas, ['=GC_EMISSIONS(C8,D8)', '=GC_CITE(C8)']);
   assert.equal(b.headers.length, b.values.length + b.formulas.length, 'header row spans the value + formula columns');
   assert.equal(core.GC_EXAMPLE.key, 'grid.gbr.electricity.location_based');
+});
+
+// Playbook 1.2: every cell message names the next action and none names an HTTP code.
+const NAMES_A_CODE = /\bHTTP\b|\b[45]\d\d\b/;
+test('gcHttpMessage: plain language for every status, never the code', () => {
+  const body = { error: { message: 'Missing or invalid API key.' } };
+  for (const code of [400, 401, 403, 404, 418, 429, 500, 502, 503, 0]) {
+    for (const keyed of [true, false]) {
+      const m = core.gcHttpMessage(code, body, keyed);
+      assert.doesNotMatch(m, NAMES_A_CODE, `${code} keyed=${keyed}: ${m}`);
+      assert.match(m, / — /, `${code} keyed=${keyed} names no next action: ${m}`);
+    }
+  }
+  assert.match(core.gcHttpMessage(401, body, true), /API key was not accepted — open the sidebar/);
+  assert.match(core.gcHttpMessage(401, body, false), /needs a free API key — open the sidebar/);
+  assert.match(core.gcHttpMessage(429, null, false), /^Too many lookups this minute — wait 60 s/);
+  assert.match(core.gcHttpMessage(503, null, false), /having trouble right now — try again in a minute/);
+  assert.match(core.gcHttpMessage(0, null, false), /^Could not reach api\.greencalculus\.com/);
+});
+test('GC_MSG: fixed messages name the next action, not a code', () => {
+  const all = [core.GC_MSG.rateLimited, core.GC_MSG.timedOut, core.GC_MSG.network, core.GC_MSG.badReply, core.GC_MSG.noVersion,
+    core.GC_MSG.pinnedNoKey('2026.150'), core.GC_MSG.badAsOf('yesterday'), core.GC_MSG.notArchived('2026.100', '2026.111', '2026.186'), core.GC_MSG.notArchived('2026.100', '', null),
+    core.gcUnknownKeyMessage('grid.nope')];
+  for (const m of all) { assert.doesNotMatch(m, NAMES_A_CODE, m); assert.match(m, / — /, m); }
+  assert.match(core.GC_MSG.pinnedNoKey('2026.150'), /pinned to data version 2026\.150 — .*open the sidebar \(Extensions → GreenCalculus → Open GreenCalculus\) → API key/);
+  assert.match(core.GC_MSG.badAsOf('yesterday'), /"yesterday" is not a data version — use one like 2026\.150, or "current"/);
 });

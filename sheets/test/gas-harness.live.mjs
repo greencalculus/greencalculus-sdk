@@ -91,7 +91,11 @@ show('GC_VERSION() pinned', ctx.GC_VERSION());
 ctx.gcUnpinWorkbook(); show('after unpin GC_VERSION()', ctx.GC_VERSION());
 // With a (fake) key the keyed route is used; a bad key must surface the gateway's 401 as a cell message.
 props.GC_API_KEY = 'gc_live_notarealkey000';
-show('bad key, pinned → 401 message', ctx.GC_FACTOR(K, 'value', '2026.150'));
+show('bad key, pinned → key message', ctx.GC_FACTOR(K, 'value', '2026.150'));
+// Playbook 1.2 gate: no cell message produced in this run names an HTTP code.
+{ const msgs = [ctx.GC_FACTOR(K, 'value', '2026.150'), ctx.GC_FACTOR('grid.nope.x'), ctx.GC_FACTOR(K, 'value', 'yesterday'), ctx.GC_SEARCH('zzzqqq'), ctx.GC_EMISSIONS('grid.nope.x', 1)];
+  for (const m of msgs) if (/\bHTTP\b|\b[45]\d\d\b/.test(String(m))) throw new Error('cell message names an HTTP code: ' + m);
+  show('1.2 gate: no message names a code', msgs.length + ' messages checked'); }
 show('sidebar state (key set)', ctx.gcSidebarState().keyMasked);
 if (process.env.GC_API_KEY) {
   props.GC_API_KEY = process.env.GC_API_KEY;

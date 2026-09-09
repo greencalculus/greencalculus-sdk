@@ -29,15 +29,15 @@ Search the corpus in plain text, then **Insert value**, **Value + source** or **
 
 *Pin to current version* (or a past one, e.g. `2026.150`) writes the version into a named range `GC_AS_OF` on a `GreenCalculus` sheet. From then on every `GC_` formula reads factors as they stood at that version and every citation carries it, so the workbook re-opens to the same numbers — what an audit re-run needs. The pin is a visible cell: it travels with a copy and an auditor can see it. `=GC_FACTOR(key, "value", "current")` escapes the pin for one cell.
 
-Pinning reads the archive, which needs an API key. A pinned workbook whose owner has no key shows `#GC_ERROR: this workbook is pinned to … needs an API key` — never a current value under a past label.
+Pinning reads the archive, which needs an API key. A pinned workbook whose owner has no key shows `#GC_ERROR: This workbook is pinned to data version … — reading a past version needs a free API key: open the sidebar … → API key` — never a current value under a past label.
 
 Why a named range and not a setting: custom functions may read the spreadsheet but not document properties.
 
 ## How it behaves
 
 - **One fetch per unique key.** A range of 300 cells with 12 distinct keys makes 12 requests (`UrlFetchApp.fetchAll`), then caches for 6 h. The API edge-caches the same route for an hour, version-keyed, so a data release invalidates every stale answer.
-- **Keyed (pinned) fetches are batched** 25 at a time — the free plan allows 30 requests a minute — and a 429 waits for `Retry-After` once within the 30 s budget; anything left shows `#GC_ERROR: rate limited — re-run in a minute; fetched rows are cached`.
-- **Errors are readable in the cell:** `#GC_UNKNOWN_KEY: …` for a key not in the corpus, `#GC_ERROR: …` for anything else.
+- **Keyed (pinned) fetches are batched** 25 at a time — the free plan allows 30 requests a minute — and a 429 waits for `Retry-After` once within the 30 s budget; anything left shows `#GC_ERROR: Too many lookups this minute — wait 60 s, then press Enter on the cell again; already-fetched cells are kept`.
+- **Errors are readable in the cell**, written for an analyst: `#GC_UNKNOWN_KEY: No factor called "…" — search for it in the sidebar …` for a key not in the corpus, `#GC_ERROR: …` for anything else. Every message names the next action; none names an HTTP status (`gcHttpMessage` + `GC_MSG` in `core.js`, gated by a unit test and by the live harness). The raw detail stays in *Extensions → GreenCalculus → Diagnostics*.
 - **Custom functions run as the spreadsheet owner.** The API key set via *Extensions → GreenCalculus → Set API key* is stored in the owner's user properties; editors share the owner's entitlement. `as_of` without a key returns a cell message saying so.
 - **Limits (Google's):** 30 s per custom-function call; URL Fetch 20,000/day (consumer) or 100,000/day (Workspace) per user.
 
