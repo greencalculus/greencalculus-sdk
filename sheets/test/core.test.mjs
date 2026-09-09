@@ -166,3 +166,15 @@ test('GC_MSG: fixed messages name the next action, not a code', () => {
   assert.match(core.GC_MSG.pinnedNoKey('2026.150'), /pinned to data version 2026\.150 — .*open the sidebar \(Extensions → GreenCalculus → Open GreenCalculus\) → API key/);
   assert.match(core.GC_MSG.badAsOf('yesterday'), /"yesterday" is not a data version — use one like 2026\.150, or "current"/);
 });
+
+test('a number or a GC message fed as a key is named as such, never fetched, never quoted back as a key', () => {
+  const c = core.gcCollectKeys([[0.13096], ['#GC_UNKNOWN_KEY: No factor called "x"'], [KEY], ['']]);
+  assert.deepEqual(c.unique, [KEY], 'only the real key is fetched');
+  const out = core.gcMapGrid(c, { [KEY]: core.gcExtract(browse, KEY) }, r => r.value);
+  assert.match(out[0][0], /^#GC_ERROR: That cell holds a number \(0\.13096\), not a factor key — point this formula at the cell with the key text/);
+  assert.match(out[1][0], /^#GC_ERROR: That cell holds an error, not a factor key — fix that cell first/);
+  assert.equal(out[2][0], 0.13096);
+  assert.equal(out[3][0], '');
+  assert.equal(core.gcKeyProblem(' 1000 '), core.gcKeyProblem(1000).replace('(1000)', '(1000)'));
+  assert.equal(core.gcKeyProblem('grid.gbr.electricity.location_based'), null);
+});
