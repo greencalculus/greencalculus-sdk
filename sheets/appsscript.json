@@ -1,5 +1,5 @@
 {
-  "timeZone": "Europe/London",
+  "timeZone": "Asia/Singapore",
   "runtimeVersion": "V8",
   "exceptionLogging": "STACKDRIVER",
   "oauthScopes": [
