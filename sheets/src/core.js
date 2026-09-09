@@ -10,6 +10,7 @@
 
 var GC_BASE_URL = 'https://api.greencalculus.com';
 var GC_VERIFY_URL = 'https://verify.greencalculus.com';
+var GC_SIGNUP_URL = 'https://greencalculus.com/developers/welcome?plan=free&ref=sheets';
 /** Named range that pins a whole workbook to one data version (item 4). */
 var GC_PIN_RANGE = 'GC_AS_OF';
 var GC_PIN_SHEET = 'GreenCalculus';
@@ -53,6 +54,54 @@ var GC_FIELDS = {
   citation: 'a ready-to-paste citation line',
   proof: 'public proof URL pinned to the data version',
 };
+
+// ── cell messages ───────────────────────────────────────────────────────
+// Every message a cell can show names the next action and none names an HTTP
+// code: the reader is an analyst, not a developer. Diagnostics (menu) keeps
+// the raw detail for the rare case it is needed.
+var GC_SIDEBAR_HINT = 'Extensions → GreenCalculus → Open GreenCalculus';
+var GC_KEPT = 'already-fetched cells are kept';
+
+function gcUnknownKeyMessage(key) {
+  return '#GC_UNKNOWN_KEY: No factor called "' + key + '" — search for it in the sidebar (' + GC_SIDEBAR_HINT + ') or at greencalculus.com/factors';
+}
+function gcErrorMessage(text) { return '#GC_ERROR: ' + text; }
+
+var GC_MSG = {
+  rateLimited: 'Too many lookups this minute — wait 60 s, then press Enter on the cell again; ' + GC_KEPT,
+  timedOut: 'This took too long — press Enter on the cell again; ' + GC_KEPT,
+  network: 'Could not reach api.greencalculus.com — check the connection, then press Enter on the cell again',
+  badReply: 'The API sent a reply this add-in could not read — try again; if it keeps happening, run Extensions → GreenCalculus → Diagnostics',
+  noVersion: 'Could not read the current data version — check the connection and try again',
+  pinnedNoKey: function (asOf) {
+    return 'This workbook is pinned to data version ' + asOf + ' — reading a past version needs a free API key: open the sidebar (' + GC_SIDEBAR_HINT + ') → API key. Get one at ' + GC_SIGNUP_URL;
+  },
+  badAsOf: function (typed) {
+    return '"' + typed + '" is not a data version — use one like 2026.150, or "current"';
+  },
+  notArchived: function (asked, floor, current) {
+    return 'Version ' + asked + ' is not in the archive' + (floor ? ' (it starts at ' + floor + ')' : '')
+      + ' — pin to ' + (floor || 'an archived version') + ' or later, or unpin to follow the current version' + (current ? ' (' + current + ')' : '');
+  },
+};
+
+/**
+ * A failed HTTP response as a plain message. `keyed` says whether an API key
+ * was sent, which changes what a refusal means. Never echoes the status code.
+ */
+function gcHttpMessage(code, body, keyed) {
+  var detail = body && body.error && body.error.message ? String(body.error.message).replace(/\.$/, '') : '';
+  if (code === 401 || code === 403) {
+    return keyed
+      ? 'Your API key was not accepted — open the sidebar (' + GC_SIDEBAR_HINT + ') → API key and paste a current key from greencalculus.com/developers/'
+      : 'This lookup needs a free API key — open the sidebar (' + GC_SIDEBAR_HINT + ') → API key. Get one at ' + GC_SIGNUP_URL;
+  }
+  if (code === 429) return GC_MSG.rateLimited;
+  if (code === 400) return 'The API rejected this request' + (detail ? ' (' + detail + ')' : '') + ' — check the factor key, or search for it in the sidebar';
+  if (code >= 500) return 'The GreenCalculus API is having trouble right now — try again in a minute; ' + GC_KEPT;
+  if (!code) return GC_MSG.network;
+  return 'The lookup failed' + (detail ? ' (' + detail + ')' : '') + ' — try again; if it keeps happening, run Extensions → GreenCalculus → Diagnostics';
+}
 
 /**
  * Build the request for one key.
@@ -111,8 +160,8 @@ function gcExtract(json, key) {
     if (json.version_pin && json.version_pin.matched === false) {
       var vp = json.version_pin;
       var asked = vp.as_of_requested || vp.as_of || '?';
-      var floor = Array.isArray(vp.archived_versions) && vp.archived_versions.length ? ' (archive starts ' + vp.archived_versions[0] + ')' : '';
-      return { __error: 'version ' + asked + ' is not archived' + floor + ' — pin to an archived version, current is ' + vp.current };
+      var floor = Array.isArray(vp.archived_versions) && vp.archived_versions.length ? vp.archived_versions[0] : '';
+      return { __error: GC_MSG.notArchived(asked, floor, vp.current) };
     }
     // `attribution` here is the credit GreenCalculus requires of the caller,
     // NOT the publisher's. The publisher attribution is in `provenance`.
@@ -248,8 +297,8 @@ function gcMapGrid(collected, records, pick) {
     return r.map(function (k) {
       if (!k) return '';
       var rec = records[k];
-      if (!rec) return '#GC_UNKNOWN_KEY: ' + k;
-      if (rec.__error) return '#GC_ERROR: ' + rec.__error;
+      if (!rec) return gcUnknownKeyMessage(k);
+      if (rec.__error) return gcErrorMessage(rec.__error);
       return pick(rec);
     });
   });
@@ -264,5 +313,6 @@ if (typeof module !== 'undefined' && module.exports) {
     GC_PIN_RANGE: GC_PIN_RANGE, GC_PIN_SHEET: GC_PIN_SHEET, GC_KEYED_BATCH: GC_KEYED_BATCH,
     gcNormaliseVersion: gcNormaliseVersion, gcEffectiveAsOf: gcEffectiveAsOf, gcChunk: gcChunk,
     GC_EXAMPLE: GC_EXAMPLE, gcExampleBlock: gcExampleBlock,
+    GC_MSG: GC_MSG, gcHttpMessage: gcHttpMessage, gcUnknownKeyMessage: gcUnknownKeyMessage, gcErrorMessage: gcErrorMessage,
   };
 }

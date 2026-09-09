@@ -24,7 +24,6 @@
 var GC_CACHE_SECONDS = 6 * 60 * 60; // 6h is the CacheService maximum
 var GC_UA = 'greencalculus-sheets/0.2.0';
 var GC_CLIENT = 'sheets/0.2.0'; // X-GC-Client — how the funnel attributes add-in traffic
-var GC_SIGNUP_URL = 'https://greencalculus.com/developers/welcome?plan=free&ref=sheets';
 var GC_DOCS_URL = 'https://greencalculus.com/developers/docs/?ref=sheets';
 var GC_FACTORS_URL = 'https://greencalculus.com/factors/?ref=sheets';
 var GC_TERMS_URL = 'https://greencalculus.com/terms/?ref=sheets';
@@ -265,7 +264,7 @@ function gcSearch_(text, limit) {
   var code = res.getResponseCode();
   var body; try { body = JSON.parse(res.getContentText()); } catch (e) { body = null; }
   if (code !== 200 || !body || !Array.isArray(body.factors)) {
-    throw new Error((body && body.error && body.error.message) || ('HTTP ' + code));
+    throw new Error(gcHttpMessage(code, body, false));
   }
   return body.factors;
 }
@@ -280,11 +279,11 @@ function gcFetchRecords_(keys, asOf) {
   var apiKey = gcApiKey_();
   var out = {};
   if (asOf && String(asOf).indexOf('INVALID:') === 0) {
-    keys.forEach(function (k) { out[k] = { __error: 'as_of "' + asOf.slice(8) + '" is not a version (e.g. 2026.150)' }; });
+    keys.forEach(function (k) { out[k] = { __error: GC_MSG.badAsOf(asOf.slice(8)) }; });
     return out;
   }
   if (asOf && !apiKey) {
-    keys.forEach(function (k) { out[k] = { __error: 'this workbook is pinned to ' + asOf + ' — reading a past version needs an API key, free at ' + GC_SIGNUP_URL + ' (sidebar → API key)' }; });
+    keys.forEach(function (k) { out[k] = { __error: GC_MSG.pinnedNoKey(asOf) }; });
     return out;
   }
   var cache = CacheService.getScriptCache();
@@ -305,7 +304,7 @@ function gcFetchRecords_(keys, asOf) {
   for (var b = 0; b < batches.length; b++) {
     var batch = batches[b];
     if (Date.now() - started > 24000) { // leave headroom under the 30 s limit
-      batch.forEach(function (k) { out[k] = { __error: 'timed out — re-run (results so far are cached)' }; });
+      batch.forEach(function (k) { out[k] = { __error: GC_MSG.timedOut }; });
       continue;
     }
     var retry = gcFetchBatch_(batch, apiKey, asOf, out, toCache);
@@ -314,9 +313,9 @@ function gcFetchRecords_(keys, asOf) {
       if (Date.now() - started + wait * 1000 < 25000) {
         Utilities.sleep(wait * 1000);
         var again = gcFetchBatch_(retry, apiKey, asOf, out, toCache);
-        again.forEach(function (k) { out[k] = { __error: 'rate limited (' + (apiKey ? 'your plan' : 'open route') + ') — re-run in a minute; fetched rows are cached' }; });
+        again.forEach(function (k) { out[k] = { __error: GC_MSG.rateLimited }; });
       } else {
-        retry.forEach(function (k) { out[k] = { __error: 'rate limited — re-run in a minute; fetched rows are cached' }; });
+        retry.forEach(function (k) { out[k] = { __error: GC_MSG.rateLimited }; });
       }
     }
   }
@@ -331,7 +330,7 @@ function gcFetchBatch_(keys, apiKey, asOf, out, toCache) {
   });
   var responses;
   try { responses = UrlFetchApp.fetchAll(reqs); }
-  catch (e) { keys.forEach(function (k) { out[k] = { __error: 'network: ' + e.message }; }); var none = []; none.after = 0; return none; }
+  catch (e) { keys.forEach(function (k) { out[k] = { __error: GC_MSG.network }; }); var none = []; none.after = 0; return none; }
   var retry = []; retry.after = 0;
   var cacheKey = function (k) { return 'gc:' + (asOf || 'cur') + ':' + (apiKey ? 'k' : 'o') + ':' + k; };
   responses.forEach(function (res, i) {
@@ -344,7 +343,7 @@ function gcFetchBatch_(keys, apiKey, asOf, out, toCache) {
       if (rec && rec.__error) { out[k] = rec; }
       else if (rec) { out[k] = rec; toCache[cacheKey(k)] = JSON.stringify(rec); }
       else if (Array.isArray(body.factors)) { out[k] = null; }
-      else { out[k] = { __error: 'unexpected response shape' }; }
+      else { out[k] = { __error: GC_MSG.badReply }; }
     } else if (code === 404) {
       out[k] = null;
     } else if (code === 429) {
@@ -352,7 +351,7 @@ function gcFetchBatch_(keys, apiKey, asOf, out, toCache) {
       var ra = 0; try { ra = Number((res.getHeaders() || {})['Retry-After'] || (res.getHeaders() || {})['retry-after']) || 0; } catch (e) { ra = 0; }
       if (ra > retry.after) retry.after = ra;
     } else {
-      out[k] = { __error: (body && body.error && body.error.message) || ('HTTP ' + code) };
+      out[k] = { __error: gcHttpMessage(code, body, !!apiKey) };
     }
   });
   return retry;
@@ -387,8 +386,8 @@ function GC_FACTOR_ROW(key, headers) {
   var k = gcNormaliseKey(key);
   if (!k) return '';
   var rec = gcFetchRecords_([k], gcEffectiveAsOf(null, gcWorkbookPin_()))[k];
-  if (!rec) return '#GC_UNKNOWN_KEY: ' + k;
-  if (rec.__error) return '#GC_ERROR: ' + rec.__error;
+  if (!rec) return gcUnknownKeyMessage(k);
+  if (rec.__error) return gcErrorMessage(rec.__error);
   var row = GC_ROW_FIELDS.map(function (f) { return gcField(rec, f); });
   return headers ? [GC_ROW_FIELDS.slice(), row] : [row];
 }
@@ -420,8 +419,8 @@ function GC_EMISSIONS(key, quantity) {
     return r.map(function (k, j) {
       if (!k) return '';
       var rec = recs[k];
-      if (!rec) return '#GC_UNKNOWN_KEY: ' + k;
-      if (rec.__error) return '#GC_ERROR: ' + rec.__error;
+      if (!rec) return gcUnknownKeyMessage(k);
+      if (rec.__error) return gcErrorMessage(rec.__error);
       var qv = (q[i] && q[i][j] !== undefined) ? q[i][j] : (q[0] && q[0][0]);
       var n = Number(qv);
       if (qv === '' || qv === null || qv === undefined || isNaN(n)) return '';
@@ -443,8 +442,8 @@ function GC_SEARCH(text, limit) {
   var t = String(text || '').trim();
   if (!t) return '';
   var rows;
-  try { rows = gcSearch_(t, limit); } catch (e) { return '#GC_ERROR: ' + e.message; }
-  if (!rows.length) return 'No factors match "' + t + '"';
+  try { rows = gcSearch_(t, limit); } catch (e) { return gcErrorMessage(e.message); }
+  if (!rows.length) return 'No factors match "' + t + '" — try a fuel, activity or country name';
   return rows.map(function (f) {
     return [f.key, f.name || '', (f.factor && typeof f.factor.value === 'number') ? f.factor.value : '',
       (f.factor && f.factor.unit) || '', (f.source && f.source.id) || ''];
@@ -461,5 +460,5 @@ function GC_SEARCH(text, limit) {
 function GC_VERSION() {
   var pin = gcWorkbookPin_();
   if (pin) return pin;
-  return gcCurrentVersion_() || '#GC_ERROR: could not read the current version';
+  return gcCurrentVersion_() || gcErrorMessage(GC_MSG.noVersion);
 }
