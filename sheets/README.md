@@ -87,7 +87,11 @@ Capture from the bound test sheet in a window signed in ONLY as jeremiah@greenca
 1. **The formula.** Cell A2 `grid.gbr.electricity.location_based`, B2 `1000`, C2 `=GC_EMISSIONS(A2,B2)` showing `130.96`, D2 `=GC_CITE(A2)` showing the full citation. Column D wide enough to read the citation to the proof URL. The formula bar shows `=GC_CITE(A2)`.
 2. **The sidebar search.** Sidebar open, search box `diesel litre`, results visible with **Insert value / Value + source / Citation** buttons, a result inserted at the selected cell (toast "Inserted at …" if you are quick).
 3. **The workbook pin.** Sidebar "Workbook data version" section showing *Pinned to 2026.186*, and the `GreenCalculus` sheet tab visible at the bottom with `GC_AS_OF` in B1.
-4. **A country table.** Ten countries down column A (`grid.deu…`, `grid.fra…`, `grid.usa…`), `=GC_FACTOR(A2:A11)` filling B, `=GC_FACTOR(A2:A11,"source")` filling C, `=GC_VERSION()` in the header — shows ranges and one fetch per unique key.
+4. **A country table.** Ten countries down column A using `grid.<iso3>.electricity.lifecycle_intensity` (deu, fra, usa, gbr, aus, jpn, can, ind, bra, zaf — the lifecycle key exists for every country; `location_based` does NOT), `=GC_FACTOR(A2:A11)` filling B, `=GC_FACTOR(A2:A11,"source")` filling C, `=GC_VERSION()` in E1 — shows ranges and one fetch per unique key.
+
+Keys must be typed or pasted as **text**. A key cell that holds an inserted `=GC_FACTOR()` shows the value, and every formula pointing at it then reads a number as the key (the cell now says so: `That cell holds a number (0.13096), not a factor key`).
+
+**How the 9 Sep set was made** (`screenshot-1..4.png`, 2560×1600): a bound-script menu wrote each state (`Demo shot 1–4`, removed again in the same PR — see git history for `src/Demo.js`), and the capture ran from the terminal: `osascript` raised the Brave window holding the sheet and set its bounds to `{0,33,1280,914}`, then `screencapture -x -R 0,114,1280,800` took exactly the Sheets area below the browser chrome. Gotcha: a Sheets tab that has lost its live connection shows "Changes that you made may not be saved" on reload — server-side writes (including sidebar inserts) do land, but that view never shows them; reload first.
 
 ```bash
 # macOS: capture the Sheets window region, then normalise to exactly 1280×800 (no letterbox)

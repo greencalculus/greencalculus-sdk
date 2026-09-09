@@ -86,7 +86,7 @@ function gcInsertFormula(key, type) {
   var r = SpreadsheetApp.getActiveSpreadsheet().getActiveRange();
   var cell = r.getCell(1, 1);
   cell.setFormula(f);
-  return cell.getA1Notation();
+  return cell.getSheet().getName() + '!' + cell.getA1Notation();
 }
 
 function gcSaveKey(k) {
@@ -383,6 +383,8 @@ function GC_FACTOR(key, field, as_of) {
  * @customfunction
  */
 function GC_FACTOR_ROW(key, headers) {
+  var problem = gcKeyProblem(key);
+  if (problem) return gcErrorMessage(problem);
   var k = gcNormaliseKey(key);
   if (!k) return '';
   var rec = gcFetchRecords_([k], gcEffectiveAsOf(null, gcWorkbookPin_()))[k];
@@ -417,6 +419,8 @@ function GC_EMISSIONS(key, quantity) {
   var recs = c.unique.length ? gcFetchRecords_(c.unique, gcEffectiveAsOf(null, gcWorkbookPin_())) : {};
   var out = c.grid.map(function (r, i) {
     return r.map(function (k, j) {
+      var problem = c.problems && c.problems[i] && c.problems[i][j];
+      if (problem) return gcErrorMessage(problem);
       if (!k) return '';
       var rec = recs[k];
       if (!rec) return gcUnknownKeyMessage(k);

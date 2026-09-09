@@ -67,6 +67,24 @@ function gcUnknownKeyMessage(key) {
 }
 function gcErrorMessage(text) { return '#GC_ERROR: ' + text; }
 
+/**
+ * A cell fed as a KEY that plainly is not one. Both happened in the first
+ * hallway run (2026-09-09): the key cell had been overwritten by an inserted
+ * =GC_FACTOR() so it held a NUMBER, and a cell holding another GC message was
+ * fed onward as a key. Naming the mistake beats quoting "0.13096" back.
+ * Returns a message, or null when the key looks like a key.
+ */
+function gcKeyProblem(raw) {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === 'number' || (typeof raw === 'string' && /^\s*-?\d+(\.\d+)?\s*$/.test(raw))) {
+    return 'That cell holds a number (' + String(raw).trim() + '), not a factor key — point this formula at the cell with the key text, e.g. grid.gbr.electricity.location_based';
+  }
+  if (typeof raw === 'string' && /^\s*#/.test(raw)) {
+    return 'That cell holds an error, not a factor key — fix that cell first';
+  }
+  return null;
+}
+
 var GC_MSG = {
   rateLimited: 'Too many lookups this minute — wait 60 s, then press Enter on the cell again; ' + GC_KEPT,
   timedOut: 'This took too long — press Enter on the cell again; ' + GC_KEPT,
@@ -288,13 +306,16 @@ function gcCollectKeys(input) {
   } else {
     grid = [[input]];
   }
-  var keys = grid.map(function (r) { return r.map(gcNormaliseKey); });
+  // A cell that plainly is not a key (a number, another GC message) keeps its
+  // message in `problems` and is never fetched.
+  var problems = grid.map(function (r) { return r.map(gcKeyProblem); });
+  var keys = grid.map(function (r, i) { return r.map(function (v, j) { return problems[i][j] ? '' : gcNormaliseKey(v); }); });
   var seen = {};
   var unique = [];
   keys.forEach(function (r) {
     r.forEach(function (k) { if (k && !seen[k]) { seen[k] = true; unique.push(k); } });
   });
-  return { grid: keys, unique: unique, isScalar: !Array.isArray(input) };
+  return { grid: keys, unique: unique, isScalar: !Array.isArray(input), problems: problems };
 }
 
 /**
@@ -303,8 +324,10 @@ function gcCollectKeys(input) {
  * key becomes an error string the analyst can read in the cell.
  */
 function gcMapGrid(collected, records, pick) {
-  var out = collected.grid.map(function (r) {
-    return r.map(function (k) {
+  var out = collected.grid.map(function (r, i) {
+    return r.map(function (k, j) {
+      var problem = collected.problems && collected.problems[i] && collected.problems[i][j];
+      if (problem) return gcErrorMessage(problem);
       if (!k) return '';
       var rec = records[k];
       if (!rec) return gcUnknownKeyMessage(k);
@@ -323,6 +346,6 @@ if (typeof module !== 'undefined' && module.exports) {
     GC_PIN_RANGE: GC_PIN_RANGE, GC_PIN_SHEET: GC_PIN_SHEET, GC_KEYED_BATCH: GC_KEYED_BATCH,
     gcNormaliseVersion: gcNormaliseVersion, gcEffectiveAsOf: gcEffectiveAsOf, gcChunk: gcChunk,
     GC_EXAMPLE: GC_EXAMPLE, gcExampleBlock: gcExampleBlock,
-    GC_MSG: GC_MSG, gcHttpMessage: gcHttpMessage, gcUnknownKeyMessage: gcUnknownKeyMessage, gcErrorMessage: gcErrorMessage,
+    GC_MSG: GC_MSG, gcHttpMessage: gcHttpMessage, gcUnknownKeyMessage: gcUnknownKeyMessage, gcErrorMessage: gcErrorMessage, gcKeyProblem: gcKeyProblem,
   };
 }

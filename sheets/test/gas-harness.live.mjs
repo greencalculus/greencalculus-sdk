@@ -10,7 +10,7 @@ const mkRange = (store, addr) => ({
   clearContent: () => { store[addr] = ''; }, setFontFamily: () => mkRange(store, addr), setFontWeight: () => mkRange(store, addr),
   setValues: (vv) => { store[addr] = vv; return mkRange(store, addr); }, getCell: () => wb.active, setFormula: (f) => { wb.active.formula = f; }, getA1Notation: () => wb.active.a1,
 });
-wb.active.setFormula = (f) => { wb.active.formula = f; }; wb.active.getA1Notation = () => wb.active.a1;
+wb.active.setFormula = (f) => { wb.active.formula = f; }; wb.active.getA1Notation = () => wb.active.a1; wb.active.getSheet = () => ({ getName: () => 'Store' });
 const mkSheet = (name) => ({ store: {}, getRange: function (a) { return mkRange(this.store, a); }, setColumnWidth: () => {} });
 // Active sheet for the worked example: row/col-addressed ranges, A1 names.
 const colA = (c) => { let n = ''; while (c > 0) { const m = (c - 1) % 26; n = String.fromCharCode(65 + m) + n; c = (c - 1 - m) / 26; } return n; };
