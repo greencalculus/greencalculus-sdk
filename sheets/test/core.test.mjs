@@ -118,3 +118,12 @@ test('chunk', () => {
   assert.deepEqual(core.gcChunk([1,2,3,4,5], 2), [[1,2],[3,4],[5]]);
   assert.deepEqual(core.gcChunk([], 3), []);
 });
+
+test('gcExampleBlock: formulas point at the key and quantity cells wherever the block lands', () => {
+  const b = core.gcExampleBlock('C8', 'D8');
+  assert.deepEqual(b.headers, ['Factor key', 'kWh', 'kg CO2e', 'Citation']);
+  assert.deepEqual(b.values, [core.GC_EXAMPLE.key, 1000]);
+  assert.deepEqual(b.formulas, ['=GC_EMISSIONS(C8,D8)', '=GC_CITE(C8)']);
+  assert.equal(b.headers.length, b.values.length + b.formulas.length, 'header row spans the value + formula columns');
+  assert.equal(core.GC_EXAMPLE.key, 'grid.gbr.electricity.location_based');
+});

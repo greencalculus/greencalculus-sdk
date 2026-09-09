@@ -12,6 +12,16 @@ const mkRange = (store, addr) => ({
 });
 wb.active.setFormula = (f) => { wb.active.formula = f; }; wb.active.getA1Notation = () => wb.active.a1;
 const mkSheet = (name) => ({ store: {}, getRange: function (a) { return mkRange(this.store, a); }, setColumnWidth: () => {} });
+// Active sheet for the worked example: row/col-addressed ranges, A1 names.
+const colA = (c) => { let n = ''; while (c > 0) { const m = (c - 1) % 26; n = String.fromCharCode(65 + m) + n; c = (c - 1 - m) / 26; } return n; };
+const active = { cells: {}, formulas: {}, sel: { row: 3, col: 2 },
+  getActiveRange() { return { getRow: () => this.sel.row, getColumn: () => this.sel.col }; },
+  getRange(row, col, nr, nc) {
+    const a1 = nr && nc && (nr > 1 || nc > 1) ? colA(col) + row + ':' + colA(col + nc - 1) + (row + nr - 1) : colA(col) + row;
+    return { getA1Notation: () => a1,
+      setValues: (vv) => { vv.forEach((r, i) => r.forEach((v, j) => { active.cells[colA(col + j) + (row + i)] = v; })); return { setFontWeight: () => {} }; },
+      setFormulas: (ff) => { ff.forEach((r, i) => r.forEach((f, j) => { active.formulas[colA(col + j) + (row + i)] = f; })); } };
+  } };
 const ss = {
   getRangeByName: (n) => wb.named[n] || null,
   setNamedRange: (n, r) => { wb.named[n] = r; },
@@ -28,7 +38,7 @@ const ctx = {
     fetchAll: (reqs) => reqs.map(r => { const x = ctx.__sync(r.url, r.headers); return res(x); }),
     fetch: (url, o) => res(ctx.__sync(url, o.headers)),
   },
-  SpreadsheetApp: { getUi: () => ({}), getActiveSpreadsheet: () => ss }, HtmlService: {},
+  SpreadsheetApp: { getUi: () => ({}), getActiveSpreadsheet: () => ss, getActiveSheet: () => active }, HtmlService: {},
   Utilities: { sleep: (ms) => { const t = Date.now() + Math.min(ms, 50); while (Date.now() < t) {} } },
   Date,
 };
@@ -65,6 +75,12 @@ show('GC_VERSION()', ctx.GC_VERSION());
 show('sidebar state (no key)', ctx.gcSidebarState());
 show('sidebar search', ctx.gcSidebarSearch('uk grid').slice(0, 2));
 show('insert formula', [ctx.gcInsertFormula(K, 'cite'), wb.active.formula]);
+// First run: the welcome shows until the example is inserted (or skipped); the example lands at the selection.
+show('first run: welcomed?', ctx.gcSidebarState().welcomed);
+{ const r = ctx.gcInsertExampleFromSidebar(); show('insert worked example', [r.where, active.cells, active.formulas, 'welcomed=' + r.state.welcomed]);
+  if (r.where !== 'B3:E4' || active.formulas.D4 !== '=GC_EMISSIONS(B4,C4)' || active.formulas.E4 !== '=GC_CITE(B4)' || r.state.welcomed !== true) throw new Error('worked example block is wrong');
+  // the inserted formulas must evaluate to a number and a citation
+  show('example evaluates', [ctx.GC_EMISSIONS(active.cells.B4, active.cells.C4), ctx.GC_CITE(active.cells.B4).slice(0, 60) + '…']); }
 let pinErr = ''; try { ctx.gcPinWorkbook(''); } catch (e) { pinErr = e.message; } show('pin without key → throws', pinErr);
 // Simulate a pinned workbook whose owner has no key: must show a message, never a current value.
 wb.named.GC_AS_OF = mkRange({}, 'B1'); wb.named.GC_AS_OF.setValue('2026.150');

@@ -35,11 +35,29 @@
   a { color:var(--pine-ink); }
   footer { padding:10px 14px 16px; font-size:11px; color:var(--muted); }
   #msg { min-height:16px; font-size:12px; color:var(--pine-ink); margin-top:6px; }
+  #welcome { background:var(--soft); border-bottom:2px solid var(--pine); }
+  #welcome ol { margin:6px 0 8px; padding-left:20px; }
+  #welcome li { margin:3px 0; }
+  #welcome .where { font:12px var(--mono); }
   #msg.err { color:#A33B2E; }
 </style>
 </head>
 <body>
 <header><b>GreenCalculus</b><span>sourced emission factors</span></header>
+
+<section id="welcome" hidden>
+  <h3>Try this first</h3>
+  <ol>
+    <li>Click an empty cell in the sheet.</li>
+    <li>Press <b>Insert a worked example</b>.</li>
+    <li>Read the kg CO2e for 1,000 kWh of UK grid electricity — and, one column over, the citation naming the publisher's exact source cell.</li>
+  </ol>
+  <div class="row">
+    <button class="btn p" id="tryBtn">Insert a worked example</button>
+    <button class="btn" id="skipBtn">Skip</button>
+  </div>
+  <div class="muted" style="margin-top:6px">No signup needed — formulas read the open factor table.</div>
+</section>
 
 <section>
   <h3>Find a factor</h3>
@@ -81,7 +99,7 @@
 </footer>
 
 <script>
-  var S = { hasKey:false, pin:null, current:null, signupUrl:'', docsUrl:'', factorsUrl:'', termsUrl:'' };
+  var S = { welcomed:true, hasKey:false, pin:null, current:null, signupUrl:'', docsUrl:'', factorsUrl:'', termsUrl:'' };
   var $ = function (id) { return document.getElementById(id); };
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function msg(t, err){ var m=$('msg'); m.textContent=t||''; m.className=err?'err':''; }
@@ -98,6 +116,7 @@
   }
 
   function render(){
+    $('welcome').hidden = !!S.welcomed;
     $('pinstatus').innerHTML = S.pin
       ? 'Pinned to <b class="pin">' + esc(S.pin) + '</b>' + (S.current && S.current!==S.pin ? ' <span class="muted">(current is ' + esc(S.current) + ')</span>' : '')
       : 'Not pinned — formulas follow the current data version' + (S.current ? ' (<span class="pin">' + esc(S.current) + '</span>)' : '') + '.';
@@ -145,6 +164,16 @@
     msg('Inserting…');
     google.script.run.withSuccessHandler(function(where){ msg('Inserted at ' + where); }).withFailureHandler(fail).gcInsertFormula(key, type);
   }
+  $('tryBtn').addEventListener('click', function(){
+    $('tryBtn').disabled = true; msg('Inserting the worked example…');
+    google.script.run.withSuccessHandler(function(r){
+      S = r.state; render();
+      msg('Inserted at ' + r.where + '. The kg CO2e figure and its citation fill in a moment — then search for your own factor below.');
+    }).withFailureHandler(function(e){ $('tryBtn').disabled = false; fail(e); }).gcInsertExampleFromSidebar();
+  });
+  $('skipBtn').addEventListener('click', function(){
+    google.script.run.withSuccessHandler(function(st){ S=st; render(); msg(''); }).withFailureHandler(fail).gcDismissWelcome();
+  });
   $('pinBtn').addEventListener('click', function(){ pin(''); });
   $('pinToBtn').addEventListener('click', function(){ pin($('pinVer').value); });
   $('unpinBtn').addEventListener('click', function(){ msg('Unpinning…'); google.script.run.withSuccessHandler(function(st){ S=st; render(); msg('Unpinned. Formulas follow the current version.'); }).withFailureHandler(fail).gcUnpinWorkbook(); });

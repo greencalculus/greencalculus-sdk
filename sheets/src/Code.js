@@ -33,7 +33,7 @@ var GC_TERMS_URL = 'https://greencalculus.com/terms/?ref=sheets';
 function onOpen() {
   SpreadsheetApp.getUi().createAddonMenu()
     .addItem('Open GreenCalculus', 'gcShowSidebar')
-    .addItem('Insert example', 'gcInsertExample')
+    .addItem('Insert a worked example', 'gcInsertExampleFromMenu')
     .addSeparator()
     .addItem('Set API key…', 'gcSetApiKey')
     .addItem('Clear API key', 'gcClearApiKey')
@@ -41,7 +41,14 @@ function onOpen() {
     .addItem('Diagnostics', 'gcDiagDialog')
     .addToUi();
 }
-function onInstall() { onOpen(); }
+/**
+ * Marketplace install runs in AuthMode.FULL, so the sidebar may open here:
+ * a new user sees the welcome panel instead of an empty sheet and a menu.
+ */
+function onInstall(e) {
+  onOpen(e);
+  try { gcShowSidebar(); } catch (err) { /* menu is enough if the UI is unavailable */ }
+}
 
 function gcShowSidebar() {
   var html = HtmlService.createHtmlOutputFromFile('Sidebar').setTitle('GreenCalculus');
@@ -52,6 +59,7 @@ function gcShowSidebar() {
 function gcSidebarState() {
   var key = gcApiKey_();
   return {
+    welcomed: gcWelcomed_(),
     hasKey: !!key,
     keyMasked: key ? key.slice(0, 8) + '…' + key.slice(-4) : '',
     pin: gcWorkbookPin_(),
@@ -182,17 +190,51 @@ function gcClearApiKey() {
 function gcApiKey_() {
   try { return PropertiesService.getUserProperties().getProperty('GC_API_KEY') || null; } catch (e) { return null; }
 }
+/**
+ * Write the worked example at the active cell: a header row, then the key,
+ * the quantity, =GC_EMISSIONS and =GC_CITE. Returns the A1 range it filled.
+ * The block is built in core.js (gcExampleBlock) so the formulas are tested.
+ */
 function gcInsertExample() {
   var sh = SpreadsheetApp.getActiveSheet();
   var r = sh.getActiveRange();
   var row = r.getRow(), col = r.getColumn();
-  sh.getRange(row, col, 1, 4).setValues([['Factor key', 'kWh', 'kg CO2e', 'Citation']]);
-  sh.getRange(row + 1, col, 1, 4).setFormulas([[
-    '="grid.gbr.electricity.location_based"', '=1000',
-    '=GC_EMISSIONS(' + a1_(row + 1, col) + ',' + a1_(row + 1, col + 1) + ')',
-    '=GC_CITE(' + a1_(row + 1, col) + ')']]);
+  var block = gcExampleBlock(a1_(sh, row + 1, col), a1_(sh, row + 1, col + 1));
+  sh.getRange(row, col, 1, 4).setValues([block.headers]).setFontWeight('bold');
+  sh.getRange(row + 1, col, 1, 2).setValues([block.values]);
+  sh.getRange(row + 1, col + 2, 1, 2).setFormulas([block.formulas]);
+  return sh.getRange(row, col, 2, 4).getA1Notation();
 }
-function a1_(row, col) { return SpreadsheetApp.getActiveSheet().getRange(row, col).getA1Notation(); }
+function a1_(sh, row, col) { return sh.getRange(row, col).getA1Notation(); }
+
+/** Menu entry point: insert, then say where it went. */
+function gcInsertExampleFromMenu() {
+  var where = gcInsertExample();
+  gcSetWelcomed_();
+  try { SpreadsheetApp.getActiveSpreadsheet().toast('Worked example inserted at ' + where + ' — the kg CO2e figure and its citation fill in a moment.', 'GreenCalculus', 8); } catch (e) { /* toast is a nicety */ }
+}
+
+// ── first run ───────────────────────────────────────────────────────────
+// The welcome panel shows until this user inserts the example or skips it.
+// Stored per user (not per workbook): the person who has seen it once does
+// not need it in every sheet they open.
+function gcWelcomed_() {
+  try { return PropertiesService.getUserProperties().getProperty('GC_WELCOMED') === '1'; } catch (e) { return true; }
+}
+function gcSetWelcomed_() {
+  try { PropertiesService.getUserProperties().setProperty('GC_WELCOMED', '1'); } catch (e) { /* best-effort */ }
+}
+/** Sidebar "Insert a worked example": inserts at the selection, ends the welcome. */
+function gcInsertExampleFromSidebar() {
+  var where = gcInsertExample();
+  gcSetWelcomed_();
+  return { where: where, state: gcSidebarState() };
+}
+/** Sidebar "Skip": ends the welcome without inserting. */
+function gcDismissWelcome() {
+  gcSetWelcomed_();
+  return gcSidebarState();
+}
 function gcHelp() {
   var html = HtmlService.createHtmlOutput(
     '<div style="font:14px/1.5 system-ui;padding:8px 12px">'

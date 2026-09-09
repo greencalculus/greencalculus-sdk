@@ -4,7 +4,7 @@
   "version": "0.2.0",
   "description": "GreenCalculus for Google Sheets — =GC_FACTOR() and friends: sourced emission factors, with the source cell and a citation, in a spreadsheet cell.",
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test test/core.test.mjs",
     "push": "clasp push",
     "open": "clasp open"
   },
