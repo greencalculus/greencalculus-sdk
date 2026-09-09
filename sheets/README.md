@@ -17,6 +17,10 @@ Keyless by default — the GreenCalculus corpus is open to read. An API key (fre
 
 Find keys at [greencalculus.com/factors](https://greencalculus.com/factors/) or with `GC_SEARCH`.
 
+## First run
+
+Installing from the Marketplace opens the sidebar (`onInstall` runs in `AuthMode.FULL`, so it may). Until this user has tried it once, the sidebar leads with a three-line **Try this first** panel and one button, **Insert a worked example**: at the selected cell it writes a header row, then the UK grid key, `1000` kWh, `=GC_EMISSIONS(key, kWh)` and `=GC_CITE(key)` — a cited number in one click, no key needed. **Skip** hides the panel. The same block is under *Extensions → GreenCalculus → Insert a worked example*. Seen-state is per user (`GC_WELCOMED` in user properties), not per workbook.
+
 ## Sidebar (Extensions → GreenCalculus → Open GreenCalculus)
 
 Search the corpus in plain text, then **Insert value**, **Value + source** or **Citation** at the selected cell. The same panel holds the workbook version pin and the API key.
@@ -43,7 +47,7 @@ Why a named range and not a setting: custom functions may read the spreadsheet b
 
 ```
 appsscript.json      manifest — V8, external_request + currentonly + container.ui scopes, urlFetchWhitelist
-src/core.js          pure logic (URLs, extraction, citation, batching) — runs in Apps Script AND Node
+src/core.js          pure logic (URLs, extraction, citation, batching, worked-example block) — runs in Apps Script AND Node
 src/Code.js          Apps Script layer: custom functions, sidebar server functions, workbook pin, fetch + cache
 Sidebar.html         the sidebar (HtmlService) — root, not src/: nested HTML fails to load
 test/core.test.mjs   unit tests:  npm test

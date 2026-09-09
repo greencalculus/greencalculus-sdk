@@ -16,6 +16,26 @@ var GC_PIN_SHEET = 'GreenCalculus';
 /** Keyed fetches per batch: the free tier allows 30/min, so a 100-key sheet must not fire at once. */
 var GC_KEYED_BATCH = 25;
 
+/**
+ * The worked example a first-time user inserts with one click (welcome panel
+ * and the "Insert a worked example" menu item): a UK grid key, 1,000 kWh, the
+ * emissions formula and the citation formula, under a header row.
+ */
+var GC_EXAMPLE = { key: 'grid.gbr.electricity.location_based', quantity: 1000, quantityLabel: 'kWh' };
+
+/**
+ * Build the 2×4 example block. `keyA1` and `qtyA1` are the A1 references of
+ * the cells the key and quantity will be written to, so the formulas point at
+ * them wherever the block lands.
+ */
+function gcExampleBlock(keyA1, qtyA1) {
+  return {
+    headers: ['Factor key', GC_EXAMPLE.quantityLabel, 'kg CO2e', 'Citation'],
+    values: [GC_EXAMPLE.key, GC_EXAMPLE.quantity],
+    formulas: ['=GC_EMISSIONS(' + keyA1 + ',' + qtyA1 + ')', '=GC_CITE(' + keyA1 + ')'],
+  };
+}
+
 /** Fields a cell can ask for. `value` is the default. */
 var GC_FIELDS = {
   value: 'the factor value (number)',
@@ -243,5 +263,6 @@ if (typeof module !== 'undefined' && module.exports) {
     gcField: gcField, gcCollectKeys: gcCollectKeys, gcMapGrid: gcMapGrid,
     GC_PIN_RANGE: GC_PIN_RANGE, GC_PIN_SHEET: GC_PIN_SHEET, GC_KEYED_BATCH: GC_KEYED_BATCH,
     gcNormaliseVersion: gcNormaliseVersion, gcEffectiveAsOf: gcEffectiveAsOf, gcChunk: gcChunk,
+    GC_EXAMPLE: GC_EXAMPLE, gcExampleBlock: gcExampleBlock,
   };
 }
