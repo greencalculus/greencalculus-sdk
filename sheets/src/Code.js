@@ -38,6 +38,7 @@ function onOpen() {
     .addItem('Set API key…', 'gcSetApiKey')
     .addItem('Clear API key', 'gcClearApiKey')
     .addItem('Help', 'gcHelp')
+    .addItem('Diagnostics', 'gcDiagDialog')
     .addToUi();
 }
 function onInstall() { onOpen(); }
@@ -136,6 +137,31 @@ function gcUnpinWorkbook() {
   var r = ss.getRangeByName(GC_PIN_RANGE);
   if (r) r.clearContent();
   return gcSidebarState();
+}
+
+// ── diagnostics: which Google service refuses? ──────────────────────────
+function gcDiag() {
+  var lines = [];
+  var step = function (name, fn) {
+    try { var r = fn(); lines.push('OK   ' + name + (r !== undefined ? ' → ' + String(r).slice(0, 80) : '')); }
+    catch (e) { lines.push('FAIL ' + name + ' → ' + (e && e.message ? e.message : e)); }
+  };
+  step('PropertiesService.getUserProperties().getProperty', function () { return PropertiesService.getUserProperties().getProperty('GC_API_KEY') ? 'set' : 'unset'; });
+  step('PropertiesService user set/delete', function () { var u = PropertiesService.getUserProperties(); u.setProperty('GC_DIAG', '1'); u.deleteProperty('GC_DIAG'); return 'ok'; });
+  step('PropertiesService.getScriptProperties', function () { return PropertiesService.getScriptProperties().getProperty('x') === null ? 'readable' : 'readable'; });
+  step('CacheService get/put', function () { var c = CacheService.getScriptCache(); c.put('gc:diag', '1', 60); return c.get('gc:diag'); });
+  step('UrlFetchApp keyless version', function () { return gcCurrentVersion_(); });
+  step('SpreadsheetApp.getActiveSpreadsheet().getName', function () { return SpreadsheetApp.getActiveSpreadsheet().getName(); });
+  step('getRangeByName(GC_AS_OF)', function () { var r = SpreadsheetApp.getActiveSpreadsheet().getRangeByName(GC_PIN_RANGE); return r ? r.getA1Notation() : 'none'; });
+  step('getActiveRange', function () { return SpreadsheetApp.getActiveSpreadsheet().getActiveRange().getA1Notation(); });
+  step('HtmlService.createHtmlOutputFromFile(Sidebar)', function () { return HtmlService.createHtmlOutputFromFile('Sidebar').getContent().length + ' chars'; });
+  step('gcSidebarState()', function () { return JSON.stringify(gcSidebarState()).slice(0, 60); });
+  return lines.join('\n');
+}
+function gcDiagDialog() {
+  var txt = gcDiag();
+  var html = HtmlService.createHtmlOutput('<pre style="font:12px ui-monospace,Menlo,monospace;white-space:pre-wrap;padding:8px">' + txt.replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }) + '</pre>').setWidth(560).setHeight(360);
+  SpreadsheetApp.getUi().showModalDialog(html, 'GreenCalculus diagnostics');
 }
 
 // ── legacy menu items (kept: they work without the sidebar) ─────────────

@@ -85,6 +85,17 @@
   var $ = function (id) { return document.getElementById(id); };
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function msg(t, err){ var m=$('msg'); m.textContent=t||''; m.className=err?'err':''; }
+  // google.script.run runs under the browser's DEFAULT Google account. With
+  // several accounts signed in, that is often not the account this sheet is
+  // open as, and Google answers "server error … reading from storage …
+  // PERMISSION_DENIED". Say so, instead of leaving a cryptic line.
+  function fail(e){
+    var t = (e && e.message) ? e.message : String(e);
+    if (/PERMISSION_DENIED|reading from storage/i.test(t)) {
+      t = 'Google blocked the call: this usually means more than one Google account is signed in to this browser. Open the sheet in a window signed in only as the account that owns it (or make it the default account), then reopen the sidebar.';
+    }
+    msg(t, true);
+  }
 
   function render(){
     $('pinstatus').innerHTML = S.pin
@@ -100,7 +111,7 @@
     $('keyhelp').innerHTML = S.hasKey ? 'Stored in the spreadsheet owner\'s account only.' : 'A free key adds version pinning and factor history. <a href="' + esc(S.signupUrl) + '">Get a free key →</a>';
     $('docs').href = S.docsUrl; $('factors').href = S.factorsUrl; $('terms').href = S.termsUrl;
   }
-  function load(){ google.script.run.withSuccessHandler(function(st){ S=st; render(); }).withFailureHandler(function(e){ msg(e.message,true); }).gcSidebarState(); }
+  function load(){ google.script.run.withSuccessHandler(function(st){ S=st; render(); }).withFailureHandler(fail).gcSidebarState(); }
 
   var timer=null;
   $('q').addEventListener('input', function(){
@@ -110,7 +121,7 @@
   });
   function search(t){
     $('results').innerHTML = '<div class="muted" style="margin-top:8px">Searching…</div>';
-    google.script.run.withSuccessHandler(showResults).withFailureHandler(function(e){ $('results').innerHTML=''; msg(e.message,true); }).gcSidebarSearch(t);
+    google.script.run.withSuccessHandler(showResults).withFailureHandler(function(e){ $('results').innerHTML=''; fail(e); }).gcSidebarSearch(t);
   }
   function showResults(rows){
     if (!rows || !rows.length) { $('results').innerHTML = '<div class="muted" style="margin-top:8px">No matches. Try a fuel, activity or country.</div>'; return; }
@@ -132,14 +143,14 @@
   }
   function insert(key, type){
     msg('Inserting…');
-    google.script.run.withSuccessHandler(function(where){ msg('Inserted at ' + where); }).withFailureHandler(function(e){ msg(e.message,true); }).gcInsertFormula(key, type);
+    google.script.run.withSuccessHandler(function(where){ msg('Inserted at ' + where); }).withFailureHandler(fail).gcInsertFormula(key, type);
   }
   $('pinBtn').addEventListener('click', function(){ pin(''); });
   $('pinToBtn').addEventListener('click', function(){ pin($('pinVer').value); });
-  $('unpinBtn').addEventListener('click', function(){ msg('Unpinning…'); google.script.run.withSuccessHandler(function(st){ S=st; render(); msg('Unpinned. Formulas follow the current version.'); }).withFailureHandler(function(e){ msg(e.message,true); }).gcUnpinWorkbook(); });
-  function pin(v){ msg('Pinning…'); google.script.run.withSuccessHandler(function(st){ S=st; render(); msg('Pinned to ' + st.pin + '. Recalculating formulas…'); }).withFailureHandler(function(e){ msg(e.message,true); }).gcPinWorkbook(v); }
-  $('saveKey').addEventListener('click', function(){ var k=$('key').value.trim(); if(!k){ msg('Paste a key first.',true); return; } msg('Saving…'); google.script.run.withSuccessHandler(function(st){ S=st; $('key').value=''; render(); msg('Key saved.'); }).withFailureHandler(function(e){ msg(e.message,true); }).gcSaveKey(k); });
-  $('clearKey').addEventListener('click', function(){ google.script.run.withSuccessHandler(function(st){ S=st; render(); msg('Key removed.'); }).withFailureHandler(function(e){ msg(e.message,true); }).gcClearKey(); });
+  $('unpinBtn').addEventListener('click', function(){ msg('Unpinning…'); google.script.run.withSuccessHandler(function(st){ S=st; render(); msg('Unpinned. Formulas follow the current version.'); }).withFailureHandler(fail).gcUnpinWorkbook(); });
+  function pin(v){ msg('Pinning…'); google.script.run.withSuccessHandler(function(st){ S=st; render(); msg('Pinned to ' + st.pin + '. Recalculating formulas…'); }).withFailureHandler(fail).gcPinWorkbook(v); }
+  $('saveKey').addEventListener('click', function(){ var k=$('key').value.trim(); if(!k){ msg('Paste a key first.',true); return; } msg('Saving…'); google.script.run.withSuccessHandler(function(st){ S=st; $('key').value=''; render(); msg('Key saved.'); }).withFailureHandler(fail).gcSaveKey(k); });
+  $('clearKey').addEventListener('click', function(){ google.script.run.withSuccessHandler(function(st){ S=st; render(); msg('Key removed.'); }).withFailureHandler(fail).gcClearKey(); });
   load();
 </script>
 </body>
