@@ -77,6 +77,11 @@ show('sidebar search', ctx.gcSidebarSearch('uk grid').slice(0, 2));
 show('insert formula', [ctx.gcInsertFormula(K, 'cite'), wb.active.formula]);
 // First run: the welcome shows until the example is inserted (or skipped); the example lands at the selection.
 show('first run: welcomed?', ctx.gcSidebarState().welcomed);
+// A key cell that holds a NUMBER (an inserted =GC_FACTOR overwrote it) must say so — scalar and range, and via GC_CITE.
+{ const m1 = ctx.GC_FACTOR(0.13096), m2 = ctx.GC_CITE(0.13096), m3 = ctx.GC_FACTOR([[0.13096], ['#GC_ERROR: x'], ['']]);
+  for (const m of [m1, m2, m3[0][0]]) if (!/^#GC_ERROR: That cell holds a number \(0\.13096\)/.test(String(m))) throw new Error('number-as-key not named: ' + m);
+  if (!/holds an error/.test(m3[1][0]) || m3[2][0] !== '') throw new Error('range problems wrong: ' + JSON.stringify(m3));
+  show('number/error fed as key', [m1.slice(0, 60) + '…', m3[1][0].slice(0, 40) + '…']); }
 { const r = ctx.gcInsertExampleFromSidebar(); show('insert worked example', [r.where, active.cells, active.formulas, 'welcomed=' + r.state.welcomed]);
   if (r.where !== 'B3:E4' || active.formulas.D4 !== '=GC_EMISSIONS(B4,C4)' || active.formulas.E4 !== '=GC_CITE(B4)' || r.state.welcomed !== true) throw new Error('worked example block is wrong');
   // the inserted formulas must evaluate to a number and a citation
