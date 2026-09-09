@@ -247,6 +247,11 @@ function gcDismissWelcome() {
   gcSetWelcomed_();
   return gcSidebarState();
 }
+/** Sidebar footer "Show intro": brings the welcome panel back for this user. */
+function gcShowWelcomeAgain() {
+  try { PropertiesService.getUserProperties().deleteProperty('GC_WELCOMED'); } catch (e) { /* best-effort */ }
+  return gcSidebarState();
+}
 function gcHelp() {
   var html = HtmlService.createHtmlOutput(
     '<div style="font:14px/1.5 system-ui;padding:8px 12px">'
