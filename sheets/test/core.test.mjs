@@ -65,11 +65,22 @@ test('a pin the archive cannot honour is refused, not relabelled', () => {
   const r = core.gcExtract({ ...lookup, served_version: '2026.186', version_pin: { as_of_requested: '2026.100', current: '2026.186', matched: false, archived_versions: ['2026.111', '2026.112'] } }, KEY);
   assert.match(r.__error, /Version 2026\.100 is not in the archive \(it starts at 2026\.111\) — pin to 2026\.111 or later, or unpin/);
 });
-test('citation line carries attribution, cell, retrieval, version, key and proof', () => {
+const CANON = 'UK grid electricity — location-based (generation). '
+  + 'UK Government GHG Conversion Factors 2026 — Department for Energy Security and Net Zero (DESNZ), '
+  + "cell 'UK electricity'!E25, retrieved 2026-06-18. via GreenCalculus data version 2026.186, factor " + KEY + '. '
+  + 'https://verify.greencalculus.com/' + KEY + '@2026.186';
+test('a row WITH the server citation prints it verbatim, proof URL included', () => {
+  const row = { ...browse.factors[1], citation: { text: 'SERVER SAYS SO', source_id: 'DEFRA_2026', cell_ref: "'UK electricity'!E25", version: '2026.186', proof_url: 'https://verify.greencalculus.com/x@2026.186' } };
+  const r = core.gcExtract({ ...browse, factors: [row] }, KEY);
+  assert.equal(core.gcCitation(r), 'SERVER SAYS SO');
+  assert.equal(core.gcField(r, 'citation'), 'SERVER SAYS SO');
+  assert.equal(r.proof, 'https://verify.greencalculus.com/x@2026.186', 'proof comes from the citation object when present');
+  const lk = core.gcExtract({ ...lookup, factor: row }, KEY);
+  assert.equal(core.gcCitation(lk), 'SERVER SAYS SO', 'lookup shape too');
+});
+test('a row WITHOUT it falls back to the same canonical format', () => {
   const c = core.gcCitation(core.gcExtract(browse, KEY));
-  assert.equal(c, 'UK Government GHG Conversion Factors 2026 — Department for Energy Security and Net Zero (DESNZ). '
-    + "cell 'UK electricity'!E25, retrieved 2026-06-18. via GreenCalculus data version 2026.186, factor " + KEY + '. '
-    + 'https://verify.greencalculus.com/' + KEY + '@2026.186');
+  assert.equal(c, CANON);
 });
 test('field selection, aliases and unknown fields', () => {
   const r = core.gcExtract(browse, KEY);

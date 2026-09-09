@@ -178,6 +178,11 @@ function gcExtract(json, key) {
 
   var f = row.factor || {};
   var s = row.source || {};
+  // The server builds the canonical citation (API PR #109, 2026-09-09):
+  // print it VERBATIM when present. gcCitation() assembles the same format
+  // only as a fallback for a row that arrives without it.
+  var cit = row.citation && typeof row.citation.text === 'string' && row.citation.text ? row.citation : null;
+  if (cit && cit.proof_url) proof = cit.proof_url;
   if (!proof && version) proof = GC_VERIFY_URL + '/' + key + '@' + version;
 
   return {
@@ -196,22 +201,27 @@ function gcExtract(json, key) {
     version: version,
     attribution: attribution,
     proof: proof,
+    citationText: cit ? cit.text : null,
   };
 }
 
 /**
- * One citation line, assembled from what the row carries. Client-side for
- * now: the API's ready-made `citation` object exists only on calculation
- * responses (verified 2026-09-09), not on factor rows.
+ * The citation line. The API's `citation.text` is printed unchanged; the
+ * assembly below exists only for a row that arrives without one and follows
+ * the same canonical format (gc-api-gateway src/citation.ts):
+ *   <name>. <source — publisher>, cell <cell>, retrieved <date>.
+ *   via GreenCalculus data version <v>, factor <key>. <proof URL>
  */
 function gcCitation(rec) {
   if (!rec) return '';
+  if (rec.citationText) return rec.citationText;
   var parts = [];
-  parts.push(rec.attribution || rec.source || 'Unknown source');
-  var where = [];
-  if (rec.cell) where.push('cell ' + rec.cell);
-  if (rec.retrieved) where.push('retrieved ' + rec.retrieved);
-  if (where.length) parts.push(where.join(', '));
+  if (rec.name) parts.push(rec.name);
+  var who = [rec.attribution || rec.source || ''];
+  if (rec.cell) who.push('cell ' + rec.cell);
+  if (rec.retrieved) who.push('retrieved ' + rec.retrieved);
+  who = who.filter(function (x) { return !!x; });
+  if (who.length) parts.push(who.join(', '));
   var via = 'via GreenCalculus';
   if (rec.version) via += ' data version ' + rec.version;
   via += ', factor ' + rec.key;

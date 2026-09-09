@@ -1,6 +1,6 @@
 {
   "name": "greencalculus",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "The carbon-accounting API \u2014 sourced emission factors and audit-traced calculations, every value traceable to its source.",
   "type": "module",
   "main": "dist/index.js",
