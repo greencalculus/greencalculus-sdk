@@ -132,13 +132,22 @@ test('chunk', () => {
   assert.deepEqual(core.gcChunk([], 3), []);
 });
 
-test('gcExampleBlock: formulas point at the key and quantity cells wherever the block lands', () => {
+test('gcExampleBlock: formulas point at the key and amount cells; citation cell is a HYPERLINK to the proof page', () => {
   const b = core.gcExampleBlock('C8', 'D8');
-  assert.deepEqual(b.headers, ['Factor key', 'kWh', 'kg CO2e', 'Citation']);
-  assert.deepEqual(b.values, [core.GC_EXAMPLE.key, 1000]);
-  assert.deepEqual(b.formulas, ['=GC_EMISSIONS(C8,D8)', '=GC_CITE(C8)']);
-  assert.equal(b.headers.length, b.values.length + b.formulas.length, 'header row spans the value + formula columns');
-  assert.equal(core.GC_EXAMPLE.key, 'grid.gbr.electricity.location_based');
+  assert.deepEqual(b.headers, ['Factor key', 'Amount', 'Unit', 'kg CO2e', 'Citation (click for proof)']);
+  assert.deepEqual(b.values, [core.GC_EXAMPLE.key, 1000, 'kWh']);
+  assert.deepEqual(b.formulas, ['=GC_EMISSIONS(C8,D8)', '=HYPERLINK(GC_FACTOR(C8,"proof"),GC_CITE(C8,"short"))']);
+  assert.equal(b.headers.length, b.values.length + b.formulas.length);
+  const second = core.gcExampleBlock('A3', 'B3', core.GC_EXAMPLE_ROWS[1]);
+  assert.deepEqual(second.values, ['fuels.gbr.diesel_average_biofuel_blend.litre', 500, 'litres']);
+  assert.equal(core.gcCitationLinkFormula('"grid.x"'), '=HYPERLINK(GC_FACTOR("grid.x","proof"),GC_CITE("grid.x","short"))');
+});
+test('short citation: source id, source cell, data version — from fields, never prose', () => {
+  const r = core.gcExtract(browse, KEY);
+  assert.equal(core.gcCitationShort(r), "DEFRA_2026, 'UK electricity'!E25, v2026.186");
+  assert.equal(core.gcField(r, 'short'), core.gcCitationShort(r));
+  assert.equal(core.gcField(r, 'citation_short'), core.gcCitationShort(r));
+  assert.equal(core.gcCitationShort({ key: 'x', source: null, cell: null, version: '2026.186' }), 'GreenCalculus, v2026.186');
 });
 
 // Playbook 1.2: every cell message names the next action and none names an HTTP code.

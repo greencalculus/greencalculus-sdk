@@ -10,7 +10,7 @@ Keyless by default — the GreenCalculus corpus is open to read. An API key (fre
 |---|---|
 | `=GC_FACTOR(key, [field], [as_of])` | the value, or one field: `unit` `name` `source` `publisher` `cell` `retrieved` `licence` `version` `gwp` `basis` `scope` `citation` `proof`. `key` may be a range. |
 | `=GC_FACTOR_ROW(key, [headers])` | one row: value · unit · source · cell · version · citation |
-| `=GC_CITE(key)` | the citation line, printed exactly as the API returns it (`citation.text`), e.g. *UK grid electricity — location-based (generation). UK Government GHG Conversion Factors 2026 — Department for Energy Security and Net Zero (DESNZ), cell 'UK electricity'!E25, retrieved 2026-06-18. via GreenCalculus data version 2026.186, factor grid.gbr… https://verify.greencalculus.com/grid.gbr.electricity.location_based@2026.186* |
+| `=GC_CITE(key, [style])` | the citation line, printed exactly as the API returns it (`citation.text`); `"short"` gives the cell-sized form *DEFRA_2026, 'UK electricity'!E25, v2026.186*. Linked: `=HYPERLINK(GC_FACTOR(key,"proof"), GC_CITE(key,"short"))` — custom functions cannot return links, HYPERLINK can wrap them. Full form e.g. *UK grid electricity — location-based (generation). UK Government GHG Conversion Factors 2026 — Department for Energy Security and Net Zero (DESNZ), cell 'UK electricity'!E25, retrieved 2026-06-18. via GreenCalculus data version 2026.186, factor grid.gbr… https://verify.greencalculus.com/grid.gbr.electricity.location_based@2026.186* |
 | `=GC_EMISSIONS(key, quantity)` | quantity × factor (kWh × kg CO2e/kWh = kg CO2e). Ranges fill a column. |
 | `=GC_SEARCH("diesel litre", [limit])` | key · name · value · unit · source, one match per row |
 | `=GC_VERSION()` | the data version this workbook's formulas read: the pin if set, else current |
@@ -19,11 +19,11 @@ Find keys at [greencalculus.com/factors](https://greencalculus.com/factors/) or 
 
 ## First run
 
-Installing from the Marketplace opens the sidebar (`onInstall` runs in `AuthMode.FULL`, so it may). Until this user has tried it once, the sidebar leads with a three-line **Try this first** panel and one button, **Insert a worked example**: at the selected cell it writes a header row, then the UK grid key, `1000` kWh, `=GC_EMISSIONS(key, kWh)` and `=GC_CITE(key)` — a cited number in one click, no key needed. **Skip** hides the panel. The same block is under *Extensions → GreenCalculus → Insert a worked example*. Seen-state is per user (`GC_WELCOMED` in user properties), not per workbook.
+Installing from the Marketplace opens the sidebar (`onInstall` runs in `AuthMode.FULL`, so it may). Until this user has tried it once, the sidebar leads with a one-line "why" (source cell, data version, citation, stays current) and one button, **Build me a starter sheet**: at the selected cell it writes a header row and two rows — UK grid electricity for 1,000 kWh and UK diesel for 500 litres — each with `=GC_EMISSIONS(key, amount)` and a linked short citation `=HYPERLINK(GC_FACTOR(key,"proof"), GC_CITE(key,"short"))`. Cited numbers in one click, no key needed. **Skip** hides the panel. The same block is under *Extensions → GreenCalculus → Build me a starter sheet*. Seen-state is per user (`GC_WELCOMED` in user properties), not per workbook.
 
 ## Sidebar (Extensions → GreenCalculus → Open GreenCalculus)
 
-Search the corpus in plain text, then **Insert value**, **Value + source** or **Citation** at the selected cell. The same panel holds the workbook version pin and the API key.
+Search the corpus in plain text, then **Insert value**, **Value + source**, **Citation link** (short citation that links to the proof page) or **Full citation** at the selected cell. Inserts pre-fetch the record so the cell fills from cache; Google still shows "Loading…" for its own round trip. The same panel holds the workbook version pin and the API key.
 
 ## Workbook version pin
 

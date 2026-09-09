@@ -32,7 +32,7 @@ var GC_TERMS_URL = 'https://greencalculus.com/terms/?ref=sheets';
 function onOpen() {
   SpreadsheetApp.getUi().createAddonMenu()
     .addItem('Open GreenCalculus', 'gcShowSidebar')
-    .addItem('Insert a worked example', 'gcInsertExampleFromMenu')
+    .addItem('Build me a starter sheet', 'gcInsertExampleFromMenu')
     .addSeparator()
     .addItem('Set API key…', 'gcSetApiKey')
     .addItem('Clear API key', 'gcClearApiKey')
@@ -76,13 +76,20 @@ function gcSidebarSearch(text) {
   });
 }
 
-/** Write a formula at the active cell; returns the A1 address for the toast. */
+/**
+ * Write a formula at the active cell; returns the sheet-qualified address for
+ * the toast. The record is fetched here first so the custom function that
+ * follows finds it in CacheService — the cell still shows Google's "Loading…"
+ * for its own round trip, but no second network wait.
+ */
 function gcInsertFormula(key, type) {
   var k = gcNormaliseKey(key);
   if (!k) throw new Error('No factor key.');
   var f = type === 'row' ? '=GC_FACTOR_ROW("' + k + '")'
-        : type === 'cite' ? '=GC_CITE("' + k + '")'
+        : type === 'cite' ? gcCitationLinkFormula('"' + k + '"')
+        : type === 'cite_full' ? '=GC_CITE("' + k + '")'
         : '=GC_FACTOR("' + k + '")';
+  try { gcFetchRecords_([k], gcEffectiveAsOf(null, gcWorkbookPin_())); } catch (e) { /* pre-warm only */ }
   var r = SpreadsheetApp.getActiveSpreadsheet().getActiveRange();
   var cell = r.getCell(1, 1);
   cell.setFormula(f);
@@ -190,19 +197,25 @@ function gcApiKey_() {
   try { return PropertiesService.getUserProperties().getProperty('GC_API_KEY') || null; } catch (e) { return null; }
 }
 /**
- * Write the worked example at the active cell: a header row, then the key,
- * the quantity, =GC_EMISSIONS and =GC_CITE. Returns the A1 range it filled.
- * The block is built in core.js (gcExampleBlock) so the formulas are tested.
+ * Write the starter sheet at the active cell: a header row, then one row per
+ * GC_EXAMPLE_ROWS (key, amount, unit, =GC_EMISSIONS, linked short citation).
+ * Returns the A1 range it filled. Rows are built in core.js (gcExampleBlock)
+ * so the formulas are unit-tested. Keys are pre-fetched so the cells fill
+ * from cache.
  */
 function gcInsertExample() {
   var sh = SpreadsheetApp.getActiveSheet();
   var r = sh.getActiveRange();
   var row = r.getRow(), col = r.getColumn();
-  var block = gcExampleBlock(a1_(sh, row + 1, col), a1_(sh, row + 1, col + 1));
-  sh.getRange(row, col, 1, 4).setValues([block.headers]).setFontWeight('bold');
-  sh.getRange(row + 1, col, 1, 2).setValues([block.values]);
-  sh.getRange(row + 1, col + 2, 1, 2).setFormulas([block.formulas]);
-  return sh.getRange(row, col, 2, 4).getA1Notation();
+  try { gcFetchRecords_(GC_EXAMPLE_ROWS.map(function (x) { return x.key; }), gcEffectiveAsOf(null, gcWorkbookPin_())); } catch (e) { /* pre-warm only */ }
+  sh.getRange(row, col, 1, GC_EXAMPLE_HEADERS.length).setValues([GC_EXAMPLE_HEADERS]).setFontWeight('bold');
+  for (var i = 0; i < GC_EXAMPLE_ROWS.length; i++) {
+    var rr = row + 1 + i;
+    var block = gcExampleBlock(a1_(sh, rr, col), a1_(sh, rr, col + 1), GC_EXAMPLE_ROWS[i]);
+    sh.getRange(rr, col, 1, 3).setValues([block.values]);
+    sh.getRange(rr, col + 3, 1, 2).setFormulas([block.formulas]);
+  }
+  return sh.getRange(row, col, 1 + GC_EXAMPLE_ROWS.length, GC_EXAMPLE_HEADERS.length).getA1Notation();
 }
 function a1_(sh, row, col) { return sh.getRange(row, col).getA1Notation(); }
 
@@ -210,7 +223,7 @@ function a1_(sh, row, col) { return sh.getRange(row, col).getA1Notation(); }
 function gcInsertExampleFromMenu() {
   var where = gcInsertExample();
   gcSetWelcomed_();
-  try { SpreadsheetApp.getActiveSpreadsheet().toast('Worked example inserted at ' + where + ' — the kg CO2e figure and its citation fill in a moment.', 'GreenCalculus', 8); } catch (e) { /* toast is a nicety */ }
+  try { SpreadsheetApp.getActiveSpreadsheet().toast('Starter sheet at ' + where + ' — the figures and citations fill in a few seconds.', 'GreenCalculus', 8); } catch (e) { /* toast is a nicety */ }
 }
 
 // ── first run ───────────────────────────────────────────────────────────
@@ -238,13 +251,15 @@ function gcHelp() {
   var html = HtmlService.createHtmlOutput(
     '<div style="font:14px/1.5 system-ui;padding:8px 12px">'
     + '<b>=GC_FACTOR(key, [field], [as_of])</b><br>Fields: ' + Object.keys(GC_FIELDS).join(', ') + '<br><br>'
-    + '<b>=GC_FACTOR_ROW(key)</b> · <b>=GC_CITE(key)</b> · <b>=GC_EMISSIONS(key, qty)</b> · <b>=GC_SEARCH(text)</b> · <b>=GC_VERSION()</b><br><br>'
+    + '<b>=GC_FACTOR_ROW(key)</b> · <b>=GC_CITE(key, ["short"])</b> · <b>=GC_EMISSIONS(key, qty)</b> · <b>=GC_SEARCH(text)</b> · <b>=GC_VERSION()</b><br>'
+    + 'Linked citation: <code>=HYPERLINK(GC_FACTOR(key,"proof"), GC_CITE(key,"short"))</code><br><br>'
+    + 'Every value comes with the publisher\'s exact source cell, the data version and a citation, and stays current when the publisher updates.<br><br>'
     + 'Keys: <a href="' + GC_FACTORS_URL + '" target="_blank">greencalculus.com/factors</a> · '
     + 'Docs: <a href="' + GC_DOCS_URL + '" target="_blank">developers/docs</a> · '
     + '<a href="' + GC_SIGNUP_URL + '" target="_blank">Get a free API key</a> (version pinning)<br><br>'
     + '<small>Sharing sheets that contain these values with clients is redistribution under the '
     + '<a href="' + GC_TERMS_URL + '" target="_blank">terms</a> — the Business plan covers it.</small></div>'
-  ).setWidth(440).setHeight(240);
+  ).setWidth(460).setHeight(300);
   SpreadsheetApp.getUi().showModalDialog(html, 'GreenCalculus');
 }
 
@@ -397,14 +412,20 @@ function GC_FACTOR_ROW(key, headers) {
 }
 
 /**
- * A ready-to-paste citation for a factor: publisher attribution, source cell,
- * retrieval date, data version and a public proof link.
+ * A ready-to-paste citation for a factor: factor name, publisher, source cell,
+ * retrieval date, data version and a public proof link. Pass "short" for a
+ * cell-sized form (source id, source cell, data version); wrap in HYPERLINK
+ * with GC_FACTOR(key,"proof") to make it a link.
  *
  * @param {string|Array<Array<string>>} key Factor key or a range of keys.
+ * @param {string} [style] "full" (default) or "short".
  * @return {string} Citation line(s).
  * @customfunction
  */
-function GC_CITE(key) { return GC_FACTOR(key, 'citation'); }
+function GC_CITE(key, style) {
+  var st = String(style || 'full').trim().toLowerCase();
+  return GC_FACTOR(key, st === 'short' ? 'citation_short' : 'citation');
+}
 
 /**
  * Emissions for a quantity: quantity × factor value, in the factor's CO2e unit
