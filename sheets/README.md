@@ -68,12 +68,39 @@ clasp push && clasp open                      # then Extensions → GreenCalculu
 
 `.claspignore` pushes only the manifest and `src/`.
 
+## Store assets (`store/`)
+
+Generated 2026-09-09 from the 512 px transparent logo master (`store/icon-source-512.png`, the same mark as the site header, attachment 2028). Google's listing requirements (developers.google.com/workspace/marketplace/create-listing): icons 32×32 and 128×128 required, 48×48 and 96×96 if a web app is included; card banner exactly 220×140; 1–10 screenshots, recommended 1280×800 (640×400 and 2560×1600 also accepted), square corners, no padding; app name ≤ 50 chars, short description ≤ 200, detailed < 16,000.
+
+| File | Use |
+|---|---|
+| `icon-32.png` `icon-48.png` `icon-96.png` `icon-128.png` | Marketplace SDK → Store Listing → application icons (transparent) |
+| `icon-128-consent-white.png` | OAuth consent screen logo (opaque white background) |
+| `card-220x140.svg` → `card-220x140.png` | Marketplace card banner. Edit the SVG, re-render: `rsvg-convert -w 220 -h 140 -f png card-220x140.svg -o card-220x140.png` |
+| `screenshot-1..4.png` | 1280×800, captured from the test sheet — shot list below |
+| `demo.mp4` `demo.gif` | Phase 1.7 — 1280×800 MP4 for the listing (YouTube) and a 12 s GIF for social |
+
+### Screenshot shot list (1280×800, full bleed, square corners)
+
+Capture from the bound test sheet in a window signed in ONLY as jeremiah@greencalculus.com (the sidebar refuses calls under multiple accounts). Browser zoom 100 %, hide bookmarks bar, crop to the Sheets viewport — Google rejects padding. Every shot must show the add-on inside Google Sheets.
+
+1. **The formula.** Cell A2 `grid.gbr.electricity.location_based`, B2 `1000`, C2 `=GC_EMISSIONS(A2,B2)` showing `130.96`, D2 `=GC_CITE(A2)` showing the full citation. Column D wide enough to read the citation to the proof URL. The formula bar shows `=GC_CITE(A2)`.
+2. **The sidebar search.** Sidebar open, search box `diesel litre`, results visible with **Insert value / Value + source / Citation** buttons, a result inserted at the selected cell (toast "Inserted at …" if you are quick).
+3. **The workbook pin.** Sidebar "Workbook data version" section showing *Pinned to 2026.186*, and the `GreenCalculus` sheet tab visible at the bottom with `GC_AS_OF` in B1.
+4. **A country table.** Ten countries down column A (`grid.deu…`, `grid.fra…`, `grid.usa…`), `=GC_FACTOR(A2:A11)` filling B, `=GC_FACTOR(A2:A11,"source")` filling C, `=GC_VERSION()` in the header — shows ranges and one fetch per unique key.
+
+```bash
+# macOS: capture the Sheets window region, then normalise to exactly 1280×800 (no letterbox)
+screencapture -i store/screenshot-1.png
+sips -z 800 1280 store/screenshot-1.png   # only if the capture is already 16:10; otherwise crop first
+```
+
 ## Publish to the Google Workspace Marketplace (owner steps)
 
 1. Create a Google Cloud project; link it to the Apps Script project (Project Settings → GCP project number).
 2. OAuth consent screen: app name, logo, homepage `https://greencalculus.com/`, privacy `https://greencalculus.com/privacy/`, terms `https://greencalculus.com/terms/`; verify the `greencalculus.com` domain. Check whether `script.external_request` is flagged sensitive in the scope picker — if so, submit for OAuth verification (Google: most responses within 24–72 h).
 3. Enable the **Google Workspace Marketplace SDK**; App configuration → *Sheets add-on*, script deployment ID from `clasp deploy`.
-4. Store listing: name, 128×128 + 220×140 icons, ≥1 screenshot, category *Productivity* (or *Business tools*), support URL `https://greencalculus.com/developers/`.
+4. Store listing: assets from `store/` (icons, 220×140 card, screenshots), category *Productivity* (or *Business tools*), support URL `https://greencalculus.com/developers/`.
 5. Publish → Google review (public listing).
 
 Listing copy, screenshots and the landing page (guide #47 "Emission factors in Google Sheets & Excel") ship in the same fortnight — see the distribution roadmap.
