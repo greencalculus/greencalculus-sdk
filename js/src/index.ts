@@ -15,8 +15,12 @@
  */
 
 export interface GreenCalculusOptions {
-  /** Your API key — get a free one at https://greencalculus.com/developers */
-  apiKey: string;
+  /**
+   * Your API key — get a free one at https://greencalculus.com/developers.
+   * Optional: without one, `browse()` and `search()` still work (the corpus
+   * is open to read); factor lookups, ?as_of= pinning and calculations need it.
+   */
+  apiKey?: string;
   /** Override the gateway base URL (default https://api.greencalculus.com). */
   baseUrl?: string;
   /** Provide a fetch implementation (needed on Node < 18). */
@@ -37,18 +41,16 @@ export class GreenCalculusError extends Error {
 type Body = Record<string, unknown>;
 type Json = Record<string, any>;
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
+const SIGNUP_URL = "https://greencalculus.com/developers/welcome?plan=free&ref=sdk-js";
 
 export class GreenCalculus {
   private apiKey: string;
   private baseUrl: string;
   private fetchImpl: typeof fetch;
 
-  constructor(opts: GreenCalculusOptions) {
-    if (!opts || !opts.apiKey) {
-      throw new Error("apiKey is required — get a free one at https://greencalculus.com/developers");
-    }
-    this.apiKey = opts.apiKey;
+  constructor(opts: GreenCalculusOptions = {}) {
+    this.apiKey = opts.apiKey ?? "";
     this.baseUrl = (opts.baseUrl ?? "https://api.greencalculus.com").replace(/\/$/, "");
     const f = opts.fetch ?? (globalThis as any).fetch;
     if (!f) throw new Error("No fetch available — pass opts.fetch (Node < 18).");
@@ -67,19 +69,28 @@ export class GreenCalculus {
       const s = q.toString();
       if (s) url += "?" + s;
     }
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "User-Agent": `greencalculus-js/${VERSION}`,
+      // Surface tag for the funnel (browsers cannot set User-Agent; this is the
+      // header the gateway allows through CORS). A usage signal, not a control.
+      "X-GC-Client": `js/${VERSION}`,
+    };
+    if (this.apiKey) headers.Authorization = `Bearer ${this.apiKey}`;
     const res = await this.fetchImpl(url, {
       method,
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
-        "User-Agent": `greencalculus-js/${VERSION}`,
-      },
+      headers,
       body: opts.body != null ? JSON.stringify(opts.body) : undefined,
     });
     const data = (await res.json().catch(() => ({}))) as Json;
     if (!res.ok) {
       const e = (data && (data.error as Json)) || {};
-      throw new GreenCalculusError(res.status, e.code ?? "http_error", e.message ?? res.statusText);
+      let msg: string = e.message ?? res.statusText;
+      if (res.status === 401 && !this.apiKey) {
+        msg = `This call needs an API key (browse() and search() work without one). ` +
+          `Free, no card: ${SIGNUP_URL} — then new GreenCalculus({ apiKey }).`;
+      }
+      throw new GreenCalculusError(res.status, e.code ?? "http_error", msg);
     }
     return data;
   }
@@ -88,6 +99,19 @@ export class GreenCalculus {
   /** Look up a single emission factor by key. `asOf` pins a past data version. */
   factor(key: string, asOf?: string): Promise<Json> {
     return this.request("GET", `/v1/factors/${encodeURIComponent(key)}`, { params: { as_of: asOf } });
+  }
+
+  /**
+   * Browse the corpus — keyless, edge-cached. Full rows including the value,
+   * source cell and licence. Params: key_prefix, section, family, search, limit, offset, cursor.
+   */
+  browse(params: Record<string, unknown> = {}): Promise<Json> {
+    return this.request("GET", "/v1/factors", { params });
+  }
+
+  /** Free-text search over the corpus — keyless. */
+  search(text: string, limit = 10): Promise<Json> {
+    return this.browse({ search: text, limit });
   }
 
   /** Resolve a plain-language description to the best-matched factor(s). */
@@ -127,5 +151,8 @@ export class GreenCalculus {
     return this.calculate("batch", { items });
   }
 }
+
+export { gridIntensity, toCo2jsOptions, co2jsOptionsFor, citationFor, toGramsPerKwh } from "./co2js.js";
+export type { GridIntensityResult, GridIntensityOptions, GridBasis, Co2jsGridIntensity } from "./co2js.js";
 
 export default GreenCalculus;

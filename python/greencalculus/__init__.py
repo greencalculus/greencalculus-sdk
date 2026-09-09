@@ -56,7 +56,8 @@ class GreenCalculus:
     ) -> None:
         if not api_key:
             raise ValueError(
-                "api_key is required — get a free one at https://greencalculus.com/developers"
+                "api_key is required — free, no card: "
+                "https://greencalculus.com/developers/welcome?plan=free&ref=sdk-python"
             )
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
@@ -85,6 +86,7 @@ class GreenCalculus:
                 "Content-Type": "application/json",
                 "Accept": "application/json",
                 "User-Agent": f"greencalculus-python/{__version__}",
+                "X-GC-Client": f"python/{__version__}",
             },
         )
         try:

@@ -12,6 +12,8 @@ Official client libraries for the **[GreenCalculus API](https://greencalculus.co
 
 Get a **free API key** (1,000 calls/month, no card) at **[greencalculus.com/developers](https://greencalculus.com/developers)**.
 
+**Google Sheets:** `=GC_FACTOR("grid.gbr.electricity.location_based")` — see [`sheets/`](./sheets/) (add-in, Marketplace listing pending).
+
 ## Quickstart
 
 **Python**

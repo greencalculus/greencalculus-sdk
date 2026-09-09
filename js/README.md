@@ -66,6 +66,35 @@ await gc.freight({
 
 Also: `electricity`, `spendBased`, `businessTravel`, and `batch([...])`. Any methodology via `gc.calculate("<methodology>", body)`.
 
+## Keyless reads, and CO2.js
+
+The corpus is open to read. Without a key, `browse()` and `search()` return full rows — value, unit, source cell, licence, data version:
+
+```js
+import { GreenCalculus } from "greencalculus";
+const gc = new GreenCalculus();                       // no key
+const { factors } = await gc.search("diesel litre", 3);
+```
+
+**Using [CO2.js](https://github.com/thegreenwebfoundation/co2.js) for web carbon?** Feed it a sourced, versioned grid intensity instead of the unversioned bundled average, and keep the citation:
+
+```js
+import { co2 } from "@tgwf/co2";
+import { GreenCalculus, gridIntensity, toCo2jsOptions } from "greencalculus";
+
+const gc = new GreenCalculus();
+const gb = await gridIntensity(gc, "GBR");          // Ember lifecycle row, all 214 countries
+const est = new co2({ model: "swd", version: 4 })
+  .perVisitTrace(2_000_000, false, toCo2jsOptions(gb));
+console.log(est.co2, "g CO2e per visit");   // a number
+console.log(gb.citation);
+// UK … Ember Yearly Electricity Data (2025 release) — Ember Climate. cell …, retrieved …
+// via GreenCalculus data version 2026.186, factor grid.gbr.electricity.lifecycle_intensity.
+// https://verify.greencalculus.com/grid.gbr.electricity.lifecycle_intensity@2026.186
+```
+
+`gridIntensity(gc, "GBR", { basis: "location_based" })` returns the national inventory factor (DEFRA, NGA, …) where one exists and throws, listing the keys that do exist, where it does not. `co2jsOptionsFor(gc, { device: "AUS", dataCenter: "USA", network: "DEU" })` gives per-segment figures with three citations. Boundary is reported on every result — CO2.js's own bundled numbers are generation-based, the default here is lifecycle.
+
 ## Reproducibility & errors
 
 ```ts
