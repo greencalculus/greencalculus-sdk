@@ -45,7 +45,7 @@ Why a named range and not a setting: custom functions may read the spreadsheet b
 appsscript.json      manifest — V8, external_request + currentonly + container.ui scopes, urlFetchWhitelist
 src/core.js          pure logic (URLs, extraction, citation, batching) — runs in Apps Script AND Node
 src/Code.js          Apps Script layer: custom functions, sidebar server functions, workbook pin, fetch + cache
-src/Sidebar.html     the sidebar (HtmlService)
+Sidebar.html         the sidebar (HtmlService) — root, not src/: nested HTML fails to load
 test/core.test.mjs   unit tests:  npm test
 test/gas-harness.live.mjs   pre-push smoke run of Code.js under stubbed Apps Script globals, live against the API
 ```

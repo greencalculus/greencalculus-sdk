@@ -43,7 +43,7 @@ function onOpen() {
 function onInstall() { onOpen(); }
 
 function gcShowSidebar() {
-  var html = HtmlService.createHtmlOutputFromFile('src/Sidebar').setTitle('GreenCalculus');
+  var html = HtmlService.createHtmlOutputFromFile('Sidebar').setTitle('GreenCalculus');
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
