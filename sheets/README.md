@@ -113,6 +113,14 @@ Recorded as reported; each becomes a Phase 1 item or a documented non-issue.
 | O6 | Onboarding felt heavy; wanted an easier, cleaner first run. | Welcome panel exists; next: open the sidebar automatically on first use, a one-line "why", and a "Build me a starter sheet" button. |
 | O7 | Should values be centred/bold by default? | Keep Sheets' native alignment (numbers right, text left) and leave formatting to the user; only bold the header row of blocks we insert. |
 
+## Marketplace deployment
+
+| Deployment | ID | Created |
+|---|---|---|
+| Marketplace v1 (@1) | `AKfycbxzQIP6tExce7_ywrNPo38fmVUb6nrGVqx8GPbiKYuo8l2bih1-Q0nP7-m6PTi2IJVtmw` | 9 Sep 2026, `clasp deploy --description "Marketplace v1"` |
+
+Paste this ID into Marketplace SDK → App Configuration → Sheets add-on. After any code change: `clasp push -f && clasp deploy -i <ID> --description "Marketplace vN"` updates the same deployment (a new deployment would need re-linking in the SDK).
+
 ## Publish to the Google Workspace Marketplace (owner steps)
 
 1. Create a Google Cloud project; link it to the Apps Script project (Project Settings → GCP project number).
