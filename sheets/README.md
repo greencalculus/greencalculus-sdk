@@ -78,7 +78,7 @@ Generated 2026-09-09 from the 512 px transparent logo master (`store/icon-source
 | `icon-128-consent-white.png` | OAuth consent screen logo (opaque white background) |
 | `card-220x140.svg` → `card-220x140.png` | Marketplace card banner. Edit the SVG, re-render: `rsvg-convert -w 220 -h 140 -f png card-220x140.svg -o card-220x140.png` |
 | `screenshot-1..4.png` | 1280×800, captured from the test sheet — shot list below |
-| `demo.mp4` `demo.gif` | Phase 1.7 — 1280×800 MP4 for the listing (YouTube) and a 12 s GIF for social |
+| `demo.mp4` `demo.gif` | Phase 1.7, recorded 9 Sep: 41 s 1280×800 H.264 for the listing/YouTube; 12 s 800px GIF of the formula + citation for social. Recorded with `screencapture -v -V 90 -R 0,114,1280,800 raw.mov` while the owner performed the moves, then cut with ffmpeg (`-ss 28.5 -to 69.5`, `scale=1280:800`, palettegen/paletteuse for the GIF). Re-record after any UI change; the take should start on an EMPTY tab. |
 
 ### Screenshot shot list (1280×800, full bleed, square corners)
 

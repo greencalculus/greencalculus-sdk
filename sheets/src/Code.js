@@ -369,7 +369,9 @@ function gcFetchBatch_(keys, apiKey, asOf, out, toCache) {
  */
 function GC_FACTOR(key, field, as_of) {
   var c = gcCollectKeys(key);
-  if (!c.unique.length) return c.isScalar ? '' : c.grid.map(function (r) { return r.map(function () { return ''; }); });
+  // Nothing to fetch — but a cell that holds a number or another GC message
+  // still gets its named message from gcMapGrid (an early '' hid it, 2026-09-09).
+  if (!c.unique.length) return gcMapGrid(c, {}, function () { return ''; });
   var recs = gcFetchRecords_(c.unique, gcEffectiveAsOf(as_of, gcWorkbookPin_()));
   return gcMapGrid(c, recs, function (rec) { return gcField(rec, field); });
 }
