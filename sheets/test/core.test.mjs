@@ -88,3 +88,24 @@ test('mapGrid returns scalar for scalar input, grid for range input, readable mi
   const err = core.gcMapGrid(core.gcCollectKeys(KEY), { [KEY]: { __error: 'HTTP 503' } }, r => r.value);
   assert.equal(err, '#GC_ERROR: HTTP 503');
 });
+
+test('version normalisation accepts human forms and rejects junk', () => {
+  assert.equal(core.gcNormaliseVersion(' v2026.150 '), '2026.150');
+  assert.equal(core.gcNormaliseVersion('2026.9'), '2026.9');
+  assert.equal(core.gcNormaliseVersion('current'), null);
+  assert.equal(core.gcNormaliseVersion(''), null);
+  assert.equal(core.gcNormaliseVersion('2026'), null);
+  assert.equal(core.gcNormaliseVersion('latest-ish'), null);
+});
+test('effective as_of: explicit beats pin, "current" escapes the pin, junk is flagged', () => {
+  assert.equal(core.gcEffectiveAsOf(undefined, '2026.150'), '2026.150');
+  assert.equal(core.gcEffectiveAsOf('2026.120', '2026.150'), '2026.120');
+  assert.equal(core.gcEffectiveAsOf('current', '2026.150'), null);
+  assert.equal(core.gcEffectiveAsOf('', '2026.150'), '2026.150');
+  assert.equal(core.gcEffectiveAsOf(undefined, null), null);
+  assert.equal(core.gcEffectiveAsOf('yesterday', null), 'INVALID:yesterday');
+});
+test('chunk', () => {
+  assert.deepEqual(core.gcChunk([1,2,3,4,5], 2), [[1,2],[3,4],[5]]);
+  assert.deepEqual(core.gcChunk([], 3), []);
+});

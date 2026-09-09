@@ -10,6 +10,11 @@
 
 var GC_BASE_URL = 'https://api.greencalculus.com';
 var GC_VERIFY_URL = 'https://verify.greencalculus.com';
+/** Named range that pins a whole workbook to one data version (item 4). */
+var GC_PIN_RANGE = 'GC_AS_OF';
+var GC_PIN_SHEET = 'GreenCalculus';
+/** Keyed fetches per batch: the free tier allows 30/min, so a 100-key sheet must not fire at once. */
+var GC_KEYED_BATCH = 25;
 
 /** Fields a cell can ask for. `value` is the default. */
 var GC_FIELDS = {
@@ -147,6 +152,34 @@ function gcField(rec, field) {
   return (v === null || v === undefined) ? '' : v;
 }
 
+/**
+ * A data version as typed by a person: "2026.150", "v2026.150", " 2026.150 ".
+ * Returns the canonical form or null. "current" / "latest" / "" mean no pin.
+ */
+function gcNormaliseVersion(v) {
+  if (v === null || v === undefined) return null;
+  var t = String(v).trim().toLowerCase().replace(/^v/, '');
+  if (!t || t === 'current' || t === 'latest' || t === 'none') return null;
+  return /^\d{4}\.\d{1,3}$/.test(t) ? t : null;
+}
+
+/** Explicit cell argument beats the workbook pin; "current" escapes the pin. */
+function gcEffectiveAsOf(explicit, pin) {
+  if (explicit !== null && explicit !== undefined && String(explicit).trim() !== '') {
+    var e = String(explicit).trim().toLowerCase();
+    if (e === 'current' || e === 'latest') return null;
+    return gcNormaliseVersion(explicit) || 'INVALID:' + String(explicit).trim();
+  }
+  return gcNormaliseVersion(pin);
+}
+
+/** Split an array into batches of n. */
+function gcChunk(arr, n) {
+  var out = [];
+  for (var i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+  return out;
+}
+
 /** Column order for GC_FACTOR_ROW. */
 var GC_ROW_FIELDS = ['value', 'unit', 'source', 'cell', 'version', 'citation'];
 
@@ -194,5 +227,7 @@ if (typeof module !== 'undefined' && module.exports) {
     GC_BASE_URL: GC_BASE_URL, GC_VERIFY_URL: GC_VERIFY_URL, GC_FIELDS: GC_FIELDS, GC_ROW_FIELDS: GC_ROW_FIELDS,
     gcBuildUrl: gcBuildUrl, gcNormaliseKey: gcNormaliseKey, gcExtract: gcExtract, gcCitation: gcCitation,
     gcField: gcField, gcCollectKeys: gcCollectKeys, gcMapGrid: gcMapGrid,
+    GC_PIN_RANGE: GC_PIN_RANGE, GC_PIN_SHEET: GC_PIN_SHEET, GC_KEYED_BATCH: GC_KEYED_BATCH,
+    gcNormaliseVersion: gcNormaliseVersion, gcEffectiveAsOf: gcEffectiveAsOf, gcChunk: gcChunk,
   };
 }
