@@ -37,6 +37,7 @@
   #msg { min-height:16px; font-size:12px; color:var(--pine-ink); margin-top:6px; }
   #welcome { background:var(--soft); border-bottom:2px solid var(--pine); }
   #welcome ol { margin:6px 0 8px; padding-left:20px; }
+  #welcome p { font-size:12.5px; }
   #welcome li { margin:3px 0; }
   #welcome .where { font:12px var(--mono); }
   #msg.err { color:#A33B2E; }
@@ -46,17 +47,18 @@
 <header><b>GreenCalculus</b><span>sourced emission factors</span></header>
 
 <section id="welcome" hidden>
-  <h3>Try this first</h3>
+  <h3>Emission factors, with their source, in your cells</h3>
+  <p style="margin:6px 0 8px">Every value comes with the publisher's exact source cell, the data version and a citation — and stays current when the publisher updates. That is what an auditor asks for and what a copied number can't give you.</p>
   <ol>
-    <li>Click an empty cell in the sheet.</li>
-    <li>Press <b>Insert a worked example</b>.</li>
-    <li>Read the kg CO2e for 1,000 kWh of UK grid electricity — and, one column over, the citation naming the publisher's exact source cell.</li>
+    <li>Click an empty cell.</li>
+    <li>Press <b>Build me a starter sheet</b>: UK electricity and diesel, with emissions and clickable citations.</li>
+    <li>Then search for your own factor below and insert it.</li>
   </ol>
   <div class="row">
-    <button class="btn p" id="tryBtn">Insert a worked example</button>
+    <button class="btn p" id="tryBtn">Build me a starter sheet</button>
     <button class="btn" id="skipBtn">Skip</button>
   </div>
-  <div class="muted" style="margin-top:6px">No signup needed — formulas read the open factor table.</div>
+  <div class="muted" style="margin-top:6px">No signup. Cells show "Loading…" for a few seconds the first time — that is Google Sheets, not your connection.</div>
 </section>
 
 <section>
@@ -153,7 +155,8 @@
         + '<div class="row">'
         + '<button class="btn p" data-i="'+i+'" data-t="value">Insert value</button>'
         + '<button class="btn" data-i="'+i+'" data-t="row">Value + source</button>'
-        + '<button class="btn" data-i="'+i+'" data-t="cite">Citation</button>'
+        + '<button class="btn" data-i="'+i+'" data-t="cite" title="Short citation that links to the proof page">Citation link</button>'
+        + '<button class="btn" data-i="'+i+'" data-t="cite_full" title="The full citation line for a report">Full citation</button>'
         + '</div></div>';
     }).join('');
     Array.prototype.forEach.call($('results').querySelectorAll('button'), function(b){
@@ -162,13 +165,13 @@
   }
   function insert(key, type){
     msg('Inserting…');
-    google.script.run.withSuccessHandler(function(where){ msg('Inserted at ' + where); }).withFailureHandler(fail).gcInsertFormula(key, type);
+    google.script.run.withSuccessHandler(function(where){ msg('Inserted at ' + where + ' — the cell fills in a few seconds.'); }).withFailureHandler(fail).gcInsertFormula(key, type);
   }
   $('tryBtn').addEventListener('click', function(){
-    $('tryBtn').disabled = true; msg('Inserting the worked example…');
+    $('tryBtn').disabled = true; msg('Building the starter sheet…');
     google.script.run.withSuccessHandler(function(r){
       S = r.state; render();
-      msg('Inserted at ' + r.where + '. The kg CO2e figure and its citation fill in a moment — then search for your own factor below.');
+      msg('Starter sheet at ' + r.where + '. The figures and citations fill in a few seconds — then search for your own factor below.');
     }).withFailureHandler(function(e){ $('tryBtn').disabled = false; fail(e); }).gcInsertExampleFromSidebar();
   });
   $('skipBtn').addEventListener('click', function(){

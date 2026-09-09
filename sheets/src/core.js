@@ -23,18 +23,32 @@ var GC_KEYED_BATCH = 25;
  * emissions formula and the citation formula, under a header row.
  */
 var GC_EXAMPLE = { key: 'grid.gbr.electricity.location_based', quantity: 1000, quantityLabel: 'kWh' };
+/** The starter sheet: two activities a newcomer recognises, both DEFRA-sourced. */
+var GC_EXAMPLE_ROWS = [
+  { key: 'grid.gbr.electricity.location_based', quantity: 1000, unit: 'kWh' },
+  { key: 'fuels.gbr.diesel_average_biofuel_blend.litre', quantity: 500, unit: 'litres' },
+];
+var GC_EXAMPLE_HEADERS = ['Factor key', 'Amount', 'Unit', 'kg CO2e', 'Citation (click for proof)'];
 
 /**
- * Build the 2×4 example block. `keyA1` and `qtyA1` are the A1 references of
- * the cells the key and quantity will be written to, so the formulas point at
- * them wherever the block lands.
+ * One starter-sheet row. `keyA1` and `qtyA1` are the A1 references of the
+ * cells the key and amount will be written to, so the formulas point at them
+ * wherever the block lands. The citation cell is a HYPERLINK: the short
+ * citation as the label, the version-pinned proof page as the link — custom
+ * functions cannot return links themselves, HYPERLINK() can wrap them.
  */
-function gcExampleBlock(keyA1, qtyA1) {
+function gcExampleBlock(keyA1, qtyA1, row) {
+  var r = row || GC_EXAMPLE_ROWS[0];
   return {
-    headers: ['Factor key', GC_EXAMPLE.quantityLabel, 'kg CO2e', 'Citation'],
-    values: [GC_EXAMPLE.key, GC_EXAMPLE.quantity],
-    formulas: ['=GC_EMISSIONS(' + keyA1 + ',' + qtyA1 + ')', '=GC_CITE(' + keyA1 + ')'],
+    headers: GC_EXAMPLE_HEADERS.slice(),
+    values: [r.key, r.quantity, r.unit],
+    formulas: ['=GC_EMISSIONS(' + keyA1 + ',' + qtyA1 + ')', gcCitationLinkFormula(keyA1)],
   };
+}
+
+/** `=HYPERLINK(proof, short citation)` for a key cell reference or a quoted literal. */
+function gcCitationLinkFormula(keyRef) {
+  return '=HYPERLINK(GC_FACTOR(' + keyRef + ',"proof"),GC_CITE(' + keyRef + ',"short"))';
 }
 
 /** Fields a cell can ask for. `value` is the default. */
@@ -52,6 +66,7 @@ var GC_FIELDS = {
   basis: 'boundary / basis statement for the value',
   scope: 'GHG Protocol scope the factor belongs to',
   citation: 'a ready-to-paste citation line',
+  citation_short: 'a short citation for a cell: source id, source cell, data version',
   proof: 'public proof URL pinned to the data version',
 };
 
@@ -249,16 +264,32 @@ function gcCitation(rec) {
   return line;
 }
 
+/**
+ * The short citation for a cell: source id, source cell, data version —
+ * `DEFRA_2026, 'UK electricity'!E25, v2026.186`. Composed from the fields the
+ * API's citation object carries, so it cannot drift from the full line.
+ */
+function gcCitationShort(rec) {
+  if (!rec) return '';
+  var parts = [];
+  parts.push(rec.source || 'GreenCalculus');
+  if (rec.cell) parts.push(rec.cell);
+  if (rec.version) parts.push('v' + rec.version);
+  return parts.join(', ');
+}
+
 /** Select one field from an extracted record, for the cell. */
 function gcField(rec, field) {
   var f = gcNormaliseKey(field || 'value');
   if (f === 'source_cell' || f === 'cell_ref') f = 'cell';
   if (f === 'gwp_set') f = 'gwp';
   if (f === 'url' || f === 'verify') f = 'proof';
+  if (f === 'short' || f === 'cite_short' || f === 'citationshort') f = 'citation_short';
   if (!(f in GC_FIELDS)) {
     throw new Error('Unknown field "' + field + '". One of: ' + Object.keys(GC_FIELDS).join(', '));
   }
   if (f === 'citation') return gcCitation(rec);
+  if (f === 'citation_short') return gcCitationShort(rec);
   var v = rec[f];
   return (v === null || v === undefined) ? '' : v;
 }
@@ -345,7 +376,8 @@ if (typeof module !== 'undefined' && module.exports) {
     gcField: gcField, gcCollectKeys: gcCollectKeys, gcMapGrid: gcMapGrid,
     GC_PIN_RANGE: GC_PIN_RANGE, GC_PIN_SHEET: GC_PIN_SHEET, GC_KEYED_BATCH: GC_KEYED_BATCH,
     gcNormaliseVersion: gcNormaliseVersion, gcEffectiveAsOf: gcEffectiveAsOf, gcChunk: gcChunk,
-    GC_EXAMPLE: GC_EXAMPLE, gcExampleBlock: gcExampleBlock,
+    GC_EXAMPLE: GC_EXAMPLE, GC_EXAMPLE_ROWS: GC_EXAMPLE_ROWS, GC_EXAMPLE_HEADERS: GC_EXAMPLE_HEADERS, gcExampleBlock: gcExampleBlock,
+    gcCitationShort: gcCitationShort, gcCitationLinkFormula: gcCitationLinkFormula,
     GC_MSG: GC_MSG, gcHttpMessage: gcHttpMessage, gcUnknownKeyMessage: gcUnknownKeyMessage, gcErrorMessage: gcErrorMessage, gcKeyProblem: gcKeyProblem,
   };
 }

@@ -74,7 +74,10 @@ show('cache entries after run', Object.keys(cache).length);
 show('GC_VERSION()', ctx.GC_VERSION());
 show('sidebar state (no key)', ctx.gcSidebarState());
 show('sidebar search', ctx.gcSidebarSearch('uk grid').slice(0, 2));
-show('insert formula', [ctx.gcInsertFormula(K, 'cite'), wb.active.formula]);
+show('insert formula (cite = link)', [ctx.gcInsertFormula(K, 'cite'), wb.active.formula]);
+if (wb.active.formula !== '=HYPERLINK(GC_FACTOR("' + K + '","proof"),GC_CITE("' + K + '","short"))') throw new Error('cite insert is not the HYPERLINK form');
+show('GC_CITE(key,"short")', ctx.GC_CITE(K, 'short'));
+if (!/^DEFRA_2026, 'UK electricity'!E25, v2026\.\d+$/.test(ctx.GC_CITE(K, 'short'))) throw new Error('short citation wrong');
 // First run: the welcome shows until the example is inserted (or skipped); the example lands at the selection.
 show('first run: welcomed?', ctx.gcSidebarState().welcomed);
 // A key cell that holds a NUMBER (an inserted =GC_FACTOR overwrote it) must say so — scalar and range, and via GC_CITE.
@@ -83,9 +86,9 @@ show('first run: welcomed?', ctx.gcSidebarState().welcomed);
   if (!/holds an error/.test(m3[1][0]) || m3[2][0] !== '') throw new Error('range problems wrong: ' + JSON.stringify(m3));
   show('number/error fed as key', [m1.slice(0, 60) + '…', m3[1][0].slice(0, 40) + '…']); }
 { const r = ctx.gcInsertExampleFromSidebar(); show('insert worked example', [r.where, active.cells, active.formulas, 'welcomed=' + r.state.welcomed]);
-  if (r.where !== 'B3:E4' || active.formulas.D4 !== '=GC_EMISSIONS(B4,C4)' || active.formulas.E4 !== '=GC_CITE(B4)' || r.state.welcomed !== true) throw new Error('worked example block is wrong');
-  // the inserted formulas must evaluate to a number and a citation
-  show('example evaluates', [ctx.GC_EMISSIONS(active.cells.B4, active.cells.C4), ctx.GC_CITE(active.cells.B4).slice(0, 60) + '…']); }
+  if (r.where !== 'B3:F5' || active.formulas.E4 !== '=GC_EMISSIONS(B4,C4)' || active.formulas.F4 !== '=HYPERLINK(GC_FACTOR(B4,"proof"),GC_CITE(B4,"short"))' || active.cells.B5 !== 'fuels.gbr.diesel_average_biofuel_blend.litre' || r.state.welcomed !== true) throw new Error('starter sheet block is wrong');
+  // the inserted formulas must evaluate: a number per row and a short citation
+  show('starter evaluates', [ctx.GC_EMISSIONS(active.cells.B4, active.cells.C4), ctx.GC_EMISSIONS(active.cells.B5, active.cells.C5), ctx.GC_CITE(active.cells.B5, 'short')]); }
 let pinErr = ''; try { ctx.gcPinWorkbook(''); } catch (e) { pinErr = e.message; } show('pin without key → throws', pinErr);
 // Simulate a pinned workbook whose owner has no key: must show a message, never a current value.
 wb.named.GC_AS_OF = mkRange({}, 'B1'); wb.named.GC_AS_OF.setValue('2026.150');
