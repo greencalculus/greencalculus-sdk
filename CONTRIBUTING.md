@@ -48,6 +48,36 @@ A few conventions worth knowing:
   code. Name what to do next.
 - **No new runtime dependencies.** Both clients are deliberately dependency-free.
 
+## Releasing
+
+**Bump the version in the manifest, merge to `main`. That's the whole procedure.**
+
+`python/pyproject.toml` and `js/package.json` are the only source of truth for
+what's released. The [Release workflow](.github/workflows/release.yml) asks PyPI
+and npm whether they already have that version and publishes only when they
+don't, so a merge that bumps ships it and a merge that doesn't is a no-op. There
+are no release tags to cut and no publish checklist to forget.
+
+It also runs weekly and on demand. That is the point: if a publish fails —
+expired token, registry outage, credentials not yet wired — the next run picks it
+up without needing a new commit. The registry converges on the repo instead of
+drifting from it.
+
+The two packages version independently; they are separate libraries that happen
+to share a repo.
+
+One-time setup, recorded here so it can be checked or rebuilt:
+
+- **PyPI** uses [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) —
+  owner `greencalculus`, repo `greencalculus-sdk`, workflow `release.yml`,
+  environment `release`. No API token is stored anywhere, which is why there
+  isn't one to expire.
+- **npm** needs a single repo secret, `NPM_TOKEN` — a *granular automation*
+  token with write access to the `greencalculus` package. Automation tokens
+  bypass 2FA, which is what lets an unattended run publish at all.
+- Publishes carry [npm provenance](https://docs.npmjs.com/generating-provenance-statements),
+  a signed link from the tarball back to the commit that built it.
+
 ## Questions and what you built
 
 [Discussions](https://github.com/greencalculus/greencalculus-sdk/discussions) —
