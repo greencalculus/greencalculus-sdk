@@ -161,9 +161,8 @@ function gcBuildUrl(key, apiKey, asOf) {
 }
 
 /**
- * Normalise a factor key typed into a cell: trim, lower-case, collapse
- * whitespace. Keys are lower-case dotted paths; a stray capital or space is
- * the most common reason a lookup misses.
+ * Normalise a factor key typed into a cell: trim and strip whitespace. Keys
+ * are CASE-SENSITIVE dotted paths (every gwp.* key has capitals).
  */
 function gcNormaliseKey(key) {
   if (key === null || key === undefined) return '';
