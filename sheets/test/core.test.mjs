@@ -192,3 +192,10 @@ test('a number or a GC message fed as a key is named as such, never fetched, nev
   assert.equal(core.gcKeyProblem(' 1000 '), core.gcKeyProblem(1000).replace('(1000)', '(1000)'));
   assert.equal(core.gcKeyProblem('grid.gbr.electricity.location_based'), null);
 });
+test('open (keyless) fetches are chunked too', () => {
+  assert.equal(core.GC_OPEN_BATCH, 50);
+  const keys = Array.from({ length: 214 }, (_, i) => 'k' + i);
+  const chunks = core.gcChunk(keys, core.GC_OPEN_BATCH);
+  assert.equal(chunks.length, 5);
+  assert.equal(chunks.flat().length, 214);
+});
