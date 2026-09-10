@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     permissions:
-      contents: read
+      contents: write       # create the GitHub Release
       id-token: write        # PyPI Trusted Publishing — no token stored anywhere
     steps:
       - uses: actions/checkout@v4
@@ -86,12 +86,30 @@ jobs:
           # A re-run that races another publish must not fail the workflow.
           skip-existing: true
 
+      - name: Tag it on GitHub
+        if: steps.check.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          # The tag follows the manifest like everything else, so there is no
+          # second version to keep in step. Idempotent: a re-run finds the tag.
+          if gh release view "python-v$V" >/dev/null 2>&1; then
+            echo "Release python-v$V already exists." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh release create "python-v$V" \
+            --target "$GITHUB_SHA" \
+            --title "Python $V" \
+            --notes "\`pip install greencalculus==$V\` — [PyPI](https://pypi.org/project/greencalculus/$V/)" \
+            --generate-notes
+
   js:
     name: npm
     runs-on: ubuntu-latest
     environment: release
     permissions:
-      contents: read
+      contents: write       # create the GitHub Release
       id-token: write        # npm trusted publishing — no token, provenance included
     steps:
       - uses: actions/checkout@v4
@@ -144,3 +162,19 @@ jobs:
         # attached automatically. npm is retiring the 2FA-bypass automation
         # tokens this used to need.
         run: npm publish --access public
+
+      - name: Tag it on GitHub
+        if: steps.check.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          if gh release view "js-v$V" >/dev/null 2>&1; then
+            echo "Release js-v$V already exists." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh release create "js-v$V" \
+            --target "$GITHUB_SHA" \
+            --title "JavaScript $V" \
+            --notes "\`npm install greencalculus@$V\` — [npm](https://www.npmjs.com/package/greencalculus/v/$V)" \
+            --generate-notes
