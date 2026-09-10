@@ -1,0 +1,43 @@
+name: Report a wrong value
+description: A factor's number, unit, boundary or source looks incorrect.
+title: "[value] "
+labels: ["data", "needs verification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please file these. A carbon number that is quietly wrong is worse than one that is missing,
+        and we would rather be corrected in public than trusted incorrectly.
+  - type: input
+    id: key
+    attributes:
+      label: Factor key
+      placeholder: grid.gbr.electricity.location_based
+    validations:
+      required: true
+  - type: input
+    id: proof
+    attributes:
+      label: Verification link
+      description: Every factor has one — `citation.proof_url` in any response, or verify.greencalculus.com/<key>
+      placeholder: https://verify.greencalculus.com/grid.gbr.electricity.location_based
+  - type: textarea
+    id: expected
+    attributes:
+      label: What do you believe the value should be, and on what evidence?
+      description: The publisher, document, table or cell you are reading. A screenshot is fine.
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What looks wrong?
+      options:
+        - The number itself
+        - The unit
+        - The boundary or scope (e.g. WTT vs TTW, losses included or not)
+        - The source citation or cell reference
+        - The GWP set or vintage
+        - Something else
+    validations:
+      required: true

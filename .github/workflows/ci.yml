@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  python:
+    name: Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Unit tests (offline)
+        working-directory: python
+        run: python -m unittest discover -s tests -v
+      - name: Build the distribution
+        working-directory: python
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+          python -m twine check dist/*
+
+  js:
+    name: JS / TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install
+        working-directory: js
+        run: npm ci || npm install
+      - name: Typecheck
+        working-directory: js
+        run: npx tsc --noEmit
+      - name: Build
+        working-directory: js
+        run: npm run build
+
+  sheets:
+    name: Sheets add-in
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Unit tests
+        working-directory: sheets
+        run: node --test test/core.test.mjs
+
+  keyless-contract:
+    name: Keyless contract (live)
+    runs-on: ubuntu-latest
+    # The corpus is open to read. If this breaks, every "no key needed"
+    # promise in the READMEs is false — so it is a build failure, not a note.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: A factor resolves with no API key
+        working-directory: python
+        run: |
+          python - <<'PY'
+          import sys; sys.path.insert(0, ".")
+          from greencalculus import GreenCalculus, GreenCalculusError
+          gc = GreenCalculus()
+          f = gc.factor("grid.gbr.electricity.location_based")
+          assert isinstance(f["value"], (int, float)), f
+          assert f["unit"], f
+          assert f["source"]["cell_ref"], f
+          assert f["citation"]["proof_url"].startswith("https://verify.greencalculus.com/"), f
+          assert gc.search("diesel", limit=1)["factors"], "keyless search returned nothing"
+          for label, call in (
+              ("as_of", lambda: gc.factor("grid.gbr.electricity.location_based", as_of="2026.150")),
+              ("calc",  lambda: gc.ghg_activity(activity={"value": 1, "unit": "kWh"})),
+          ):
+              try:
+                  call(); raise SystemExit(f"{label} should need a key but did not")
+              except GreenCalculusError as e:
+                  assert e.status == 401, (label, e.status)
+          print("keyless contract holds:", f["value"], f["unit"])
+          PY

@@ -1,6 +1,6 @@
 # greencalculus
 
-The official JavaScript / TypeScript client for the [GreenCalculus API](https://greencalculus.com/developers) — sourced greenhouse-gas emission factors and audit-traced calculations. Every value comes back with its source cell and data version.
+The official JavaScript / TypeScript client for the [GreenCalculus API](https://greencalculus.com/developers?ref=npm) — sourced greenhouse-gas emission factors and audit-traced calculations. Every value comes back with the exact cell it came from and the data version it was read at.
 
 Zero dependencies. Uses the platform `fetch` (Node 18+ or any browser). Ships with TypeScript types.
 
@@ -10,20 +10,38 @@ Zero dependencies. Uses the platform `fetch` (Node 18+ or any browser). Ships wi
 npm install greencalculus
 ```
 
-## Quickstart
-
-Get a free API key (1,000 calls/month, no card) at **[greencalculus.com/developers](https://greencalculus.com/developers)**.
+## No API key needed to read the corpus
 
 ```ts
 import { GreenCalculus } from "greencalculus";
 
-const gc = new GreenCalculus({ apiKey: "gc_live_..." });
+const gc = new GreenCalculus();                      // no key
 
-// A sourced emission factor. value & unit are at the top level for convenience;
-// the full sourced row (source cell, gas, GWP set) stays under `factor`.
+// value & unit are lifted to the top level for convenience; the full sourced
+// row stays under `.factor`, with `.source`, `.licence` and `.citation` beside it.
 const f = await gc.factor("grid.gbr.electricity.location_based");
-console.log(f.value, f.unit);       // 0.13096 kg CO2e per kWh
-console.log(f.factor.source.id);    // DEFRA_2026
+console.log(f.value, f.unit);            // 0.13096 kg CO2e per kWh
+console.log(f.source.id);                // DEFRA_2026
+console.log(f.source.cell_ref);          // 'UK electricity'!E25
+console.log(f.citation.proof_url);       // a page your reader can check it on
+```
+
+Don't know the key? Search, or browse a family — also keyless:
+
+```ts
+const hits = await gc.search("diesel litre", 5);
+for (const row of hits.factors) console.log(row.key, row.factor.value, row.factor.unit);
+
+await gc.browse({ key_prefix: "grid.gbr", limit: 20 });
+await gc.browse({ section: "fuels", limit: 50 });
+```
+
+## A free key adds calculations and version pinning
+
+Get one at **[greencalculus.com/developers](https://greencalculus.com/developers/welcome?plan=free&ref=sdk-js)** — 1,000 calls a month, no card.
+
+```ts
+const gc = new GreenCalculus({ apiKey: "gc_live_..." });
 
 // An audit-traced calculation — the full working, not just a total
 const r = await gc.ghgActivity({
@@ -66,15 +84,7 @@ await gc.freight({
 
 Also: `electricity`, `spendBased`, `businessTravel`, and `batch([...])`. Any methodology via `gc.calculate("<methodology>", body)`.
 
-## Keyless reads, and CO2.js
-
-The corpus is open to read. Without a key, `browse()` and `search()` return full rows — value, unit, source cell, licence, data version:
-
-```js
-import { GreenCalculus } from "greencalculus";
-const gc = new GreenCalculus();                       // no key
-const { factors } = await gc.search("diesel litre", 3);
-```
+## CO2.js
 
 **Using [CO2.js](https://github.com/thegreenwebfoundation/co2.js) for web carbon?** Feed it a sourced, versioned grid intensity instead of the unversioned bundled average, and keep the citation:
 
@@ -98,7 +108,9 @@ console.log(gb.citation);                    // the API's citation.text, verbati
 ## Reproducibility & errors
 
 ```ts
-// Pin a past data version so a figure reproduces exactly in an audit
+// Pin a past data version so a figure reproduces exactly in an audit.
+// Reading the archive needs a key: a keyless call with asOf rejects rather
+// than returning a current value under a past label.
 await gc.factor("grid.gbr.electricity.location_based", "2026.111");
 
 import { GreenCalculusError } from "greencalculus";

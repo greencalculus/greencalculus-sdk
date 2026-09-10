@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "greencalculus"
-version = "0.1.0"
+version = "0.2.0"
 description = "The carbon-accounting API — sourced emission factors and audit-traced calculations, every value traceable to its source."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "GreenCalculus", email = "jeremiah@greencalculus.com" }]
 keywords = [
@@ -29,6 +29,7 @@ dependencies = []
 Homepage = "https://greencalculus.com/developers"
 Documentation = "https://greencalculus.com/developers/docs"
 Source = "https://github.com/jeremiahsay/greencalculus-sdk"
+Issues = "https://github.com/jeremiahsay/greencalculus-sdk/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
