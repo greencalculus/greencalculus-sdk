@@ -118,8 +118,23 @@ Recorded as reported; each becomes a Phase 1 item or a documented non-issue.
 | Deployment | ID | Created |
 |---|---|---|
 | Marketplace v1 (@1) | `AKfycbxzQIP6tExce7_ywrNPo38fmVUb6nrGVqx8GPbiKYuo8l2bih1-Q0nP7-m6PTi2IJVtmw` | 9 Sep 2026, `clasp deploy --description "Marketplace v1"` |
+| Marketplace v2 (@2) | same deployment, moved to script **version 2** | 10 Sep 2026 — case-preserving keys, keyless batches of 25, unpinned 429 → open route, fetchAll exceptions logged (PRs #16–#19) |
 
-Paste this ID into Marketplace SDK → App Configuration → Sheets add-on. After any code change: `clasp push -f && clasp deploy -i <ID> --description "Marketplace vN"` updates the same deployment (a new deployment would need re-linking in the SDK).
+The Marketplace SDK's **Editor add-on** integration takes the **script ID + a script VERSION number**, not the deployment ID (that is for Workspace add-ons). The listing currently names version 1; change it to **2** in App Configuration when the listing is next (re)submitted — version 1 has none of the 10 Sep fixes.
+
+After any code change, in this order:
+
+```bash
+clasp push -f                                             # head deployment + any test install
+clasp create-version "Marketplace vN — <date>: <what changed>"   # immutable; prints the number
+clasp update-deployment <deployment id> --versionNumber N --description "Marketplace vN"
+```
+
+then set that version number in Marketplace SDK → App Configuration → Sheets add-on. `clasp deploy -i` (older clasp) is the same as `update-deployment`.
+
+**Reading errors:** `clasp tail-logs --simplified` needs `"projectId": "greencalculus-sheets"` in the gitignored `.clasp.json`; it then shows per-function errors (e.g. *Exceeded maximum execution time* for the 30 s custom-function cap) and the message `gcFetchBatch_` logs when a `fetchAll` throws.
+
+**Test deployments do not register custom functions.** Deploy → Test deployments attaches the menu and sidebar to a document, but every `GC_` cell stays `#NAME?`. To test formulas in another workbook before the Marketplace install exists, copy the bound test workbook (File → Make a copy carries the script) — that is also how the by-country template ships.
 
 ## Publish to the Google Workspace Marketplace (owner steps)
 
