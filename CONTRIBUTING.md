@@ -72,11 +72,13 @@ One-time setup, recorded here so it can be checked or rebuilt:
   owner `greencalculus`, repo `greencalculus-sdk`, workflow `release.yml`,
   environment `release`. No API token is stored anywhere, which is why there
   isn't one to expire.
-- **npm** needs a single repo secret, `NPM_TOKEN` — a *granular automation*
-  token with write access to the `greencalculus` package. Automation tokens
-  bypass 2FA, which is what lets an unattended run publish at all.
-- Publishes carry [npm provenance](https://docs.npmjs.com/generating-provenance-statements),
-  a signed link from the tarball back to the commit that built it.
+- **npm** uses [trusted publishing](https://docs.npmjs.com/trusted-publishers)
+  too — same repo, same workflow file. npm is retiring the automation tokens
+  that bypass 2FA, so a stored token is the thing that breaks next; the job
+  exchanges its OIDC identity for a short-lived credential instead.
+- Neither registry needs a secret in this repo. Both publishes carry
+  [provenance](https://docs.npmjs.com/generating-provenance-statements) — a
+  signed link from the published artefact back to the commit that built it.
 
 ## Questions and what you built
 
