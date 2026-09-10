@@ -291,7 +291,8 @@ function gcSearch_(text, limit) {
 
 /**
  * Fetch records for a list of unique keys: cache first, then batched
- * fetchAll for the misses. Keyed batches are capped (free tier: 30/min) and
+ * fetchAll for the misses. Keyed batches are capped (free tier: 30/min; an
+ * unpinned 429 falls back to the open route) and
  * a 429 waits for Retry-After once, inside the 30 s custom-function budget.
  * Returns { key: record | null | {__error} }.
  */
@@ -328,6 +329,20 @@ function gcFetchRecords_(keys, asOf) {
       continue;
     }
     var retry = gcFetchBatch_(batch, apiKey, asOf, out, toCache);
+    if (retry.length && apiKey && !asOf) {
+      // 429 on the keyed route with no pin: the OPEN route serves the same
+      // current rows (edge-cached, no per-minute cap), so a key must never make
+      // a sheet worse than no key. Found 2026-09-10: a 214-row template with
+      // the owner's free key read "Too many lookups" on every row past the
+      // first batch, while a copier without a key filled the whole column.
+      var open = gcFetchBatch_(retry, null, null, out, toCache);
+      retry.forEach(function (k) {
+        var o = 'gc:cur:o:' + k;
+        if (toCache[o]) toCache['gc:cur:k:' + k] = toCache[o]; // next keyed lookup hits cache, not 429
+      });
+      open.forEach(function (k) { out[k] = { __error: GC_MSG.rateLimited }; });
+      retry = [];
+    }
     if (retry.length) {
       var wait = Math.min(retry.after || 5, 20);
       if (Date.now() - started + wait * 1000 < 25000) {
