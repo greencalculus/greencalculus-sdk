@@ -1,0 +1,33 @@
+name: SDK bug
+description: The Python, JS/TS or Sheets client misbehaves.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: client
+    attributes:
+      label: Which client?
+      options: [Python, JavaScript / TypeScript, Google Sheets, Postman collection]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "greencalculus 0.2.0 / Python 3.11"
+  - type: textarea
+    id: repro
+    attributes:
+      label: The smallest code that reproduces it
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened instead
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "Please don't paste your API key. If an error message contains one, redact it."

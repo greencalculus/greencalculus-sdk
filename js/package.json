@@ -1,7 +1,7 @@
 {
   "name": "greencalculus",
-  "version": "0.2.1",
-  "description": "The carbon-accounting API \u2014 sourced emission factors and audit-traced calculations, every value traceable to its source.",
+  "version": "0.2.2",
+  "description": "The carbon-accounting API — sourced emission factors and audit-traced calculations, every value traceable to its source.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -44,9 +44,13 @@
   "homepage": "https://greencalculus.com/developers",
   "repository": {
     "type": "git",
-    "url": "github:jeremiahsay/greencalculus-sdk"
+    "url": "git+https://github.com/jeremiahsay/greencalculus-sdk.git",
+    "directory": "js"
   },
   "devDependencies": {
     "typescript": "^5.4.0"
+  },
+  "bugs": {
+    "url": "https://github.com/jeremiahsay/greencalculus-sdk/issues"
   }
 }

@@ -5,19 +5,21 @@ value traceable to its source cell and data version.
 
     from greencalculus import GreenCalculus
 
-    gc = GreenCalculus(api_key="gc_live_...")           # free key: greencalculus.com/developers
+    gc = GreenCalculus()                      # no key needed to read the corpus
 
-    # a sourced factor
     f = gc.factor("grid.gbr.electricity.location_based")
-    print(f["factor"]["value"], f["factor"]["unit"])
+    print(f["value"], f["unit"])              # 0.13096 kg CO2e per kWh
+    print(f["citation"]["text"])              # the line you put in a report
 
-    # an audit-traced calculation
+    for row in gc.search("diesel litre")["factors"]:
+        print(row["key"], row["factor"]["value"])
+
+A free API key (no card: greencalculus.com/developers) additionally unlocks
+calculations and ``as_of=`` version pinning:
+
+    gc = GreenCalculus(api_key="gc_live_...")
     r = gc.ghg_activity(activity={"value": 1000, "unit": "kWh"},
                         factor_key="grid.gbr.electricity.location_based")
-    print(r["emissions"]["value"], r["emissions"]["unit"])
-
-    # plain language -> the right factor
-    m = gc.resolve("UK grid electricity")
 
 Zero third-party dependencies (standard library only).
 """
@@ -29,10 +31,11 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = ["GreenCalculus", "GreenCalculusError"]
 
 DEFAULT_BASE_URL = "https://api.greencalculus.com"
+SIGNUP_URL = "https://greencalculus.com/developers/welcome?plan=free&ref=sdk-python"
 
 
 class GreenCalculusError(Exception):
@@ -46,20 +49,20 @@ class GreenCalculusError(Exception):
 
 
 class GreenCalculus:
-    """A thin, typed client for the GreenCalculus API."""
+    """A thin, typed client for the GreenCalculus API.
+
+    The corpus is open to read, so ``api_key`` is optional. Without one,
+    :meth:`factor`, :meth:`browse` and :meth:`search` work. Calculations and
+    ``as_of=`` pinning need a free key — https://greencalculus.com/developers
+    """
 
     def __init__(
         self,
-        api_key: str,
+        api_key: Optional[str] = None,
         base_url: str = DEFAULT_BASE_URL,
         timeout: float = 30.0,
     ) -> None:
-        if not api_key:
-            raise ValueError(
-                "api_key is required — free, no card: "
-                "https://greencalculus.com/developers/welcome?plan=free&ref=sdk-python"
-            )
-        self.api_key = api_key
+        self.api_key = api_key or ""
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
 
@@ -77,18 +80,15 @@ class GreenCalculus:
             if clean:
                 url += "?" + urllib.parse.urlencode(clean)
         data = _json.dumps(body).encode("utf-8") if body is not None else None
-        req = urllib.request.Request(
-            url,
-            data=data,
-            method=method,
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "User-Agent": f"greencalculus-python/{__version__}",
-                "X-GC-Client": f"python/{__version__}",
-            },
-        )
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": f"greencalculus-python/{__version__}",
+            "X-GC-Client": f"python/{__version__}",
+        }
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        req = urllib.request.Request(url, data=data, method=method, headers=headers)
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                 return _json.loads(resp.read().decode("utf-8"))
@@ -98,29 +98,97 @@ class GreenCalculus:
                 err = _json.loads(exc.read().decode("utf-8")).get("error", {})
             except Exception:
                 pass
+            message = err.get("message", str(exc))
+            if exc.code == 401 and not self.api_key:
+                message = (
+                    "This call needs an API key (factor(), browse() and search() "
+                    f"work without one). Free, no card: {SIGNUP_URL} — then "
+                    "GreenCalculus(api_key=...)."
+                )
             raise GreenCalculusError(
-                exc.code, err.get("code", "http_error"), err.get("message", str(exc))
+                exc.code, err.get("code", "http_error"), message
             ) from None
+
+    def _require_key(self, what: str) -> None:
+        if not self.api_key:
+            raise GreenCalculusError(
+                401,
+                "unauthorized",
+                f"{what} requires an API key. Free, no card: {SIGNUP_URL} — then "
+                "GreenCalculus(api_key=...).",
+            )
 
     # ── factors ──────────────────────────────────────────────────────────
     def factor(self, key: str, as_of: Optional[str] = None) -> Dict[str, Any]:
         """Look up a single emission factor by its canonical key.
 
-        Pass ``as_of="2026.111"`` to pin a past data version for reproducibility.
+        Works without an API key: the corpus is open to read. ``value`` and
+        ``unit`` are at the top level; the full sourced row is under
+        ``["factor"]`` — so ``f["factor"]["source"]["cell_ref"]`` and
+        ``f["factor"]["citation"]["proof_url"]`` read the same either way.
+
+        With a key the response additionally carries ``provenance``,
+        ``attribution``, ``verification`` and ``proof_urls``.
+
+        Pass ``as_of="2026.111"`` to pin a past data version for
+        reproducibility. Reading the archive needs a free key, so a keyless
+        call with ``as_of`` raises rather than returning a current value under
+        a past label.
         """
-        return self._request(
-            "GET", "/v1/factors/" + urllib.parse.quote(key, safe=""), params={"as_of": as_of}
-        )
+        if as_of:
+            self._require_key("Pinning a past data version (as_of=)")
+        if self.api_key:
+            return self._request(
+                "GET",
+                "/v1/factors/" + urllib.parse.quote(key, safe=""),
+                params={"as_of": as_of},
+            )
+        # Keyless: the same row is served by the open browse route.
+        page = self.browse(key_prefix=key, limit=1)
+        rows = page.get("factors") or []
+        row = next((r for r in rows if r.get("key") == key), None)
+        if row is None:
+            raise GreenCalculusError(
+                404, "not_found", f'No factor called "{key}". Try search("{key}").'
+            )
+        inner = row.get("factor") or {}
+        # Mirror the keyed envelope exactly, so the same accessors work on both
+        # paths: f["value"], f["unit"], f["factor"]["source"], f["factor"]["citation"].
+        # The keyed route additionally carries provenance/attribution/verification.
+        return {
+            "value": inner.get("value"),
+            "unit": inner.get("unit"),
+            "gas": inner.get("gas"),
+            "factor": row,
+            "meta": page.get("meta"),
+            "served_version": (page.get("meta") or {}).get("gc_version"),
+        }
+
+    def browse(self, **params: Any) -> Dict[str, Any]:
+        """Browse the corpus — keyless, edge-cached. Full rows including the
+        value, source cell and licence.
+
+        Params: ``key_prefix``, ``section``, ``family``, ``search``, ``limit``,
+        ``offset``, ``cursor``.
+        """
+        return self._request("GET", "/v1/factors", params=params)
+
+    def search(self, text: str, limit: int = 10) -> Dict[str, Any]:
+        """Free-text search over the corpus — keyless."""
+        return self.browse(search=text, limit=limit)
 
     def resolve(self, description: str, **kwargs: Any) -> Dict[str, Any]:
         """Resolve a plain-language description to the best-matched factor(s),
         each with a confidence score."""
-        return self._request("POST", "/v1/calculate/resolve", body={"description": description, **kwargs})
+        return self._request(
+            "POST", "/v1/calculate/resolve", body={"description": description, **kwargs}
+        )
 
     # ── calculations ─────────────────────────────────────────────────────
     def calculate(self, methodology: str, **body: Any) -> Dict[str, Any]:
         """Run a calculation. ``methodology`` is one of: ghg-activity, pcaf,
         embodied, electricity, freight, spend-based, business-travel, batch."""
+        self._require_key("Calculations")
         return self._request("POST", "/v1/calculate/" + methodology, body=body)
 
     def ghg_activity(self, **body: Any) -> Dict[str, Any]:

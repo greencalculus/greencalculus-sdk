@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ask a question / show what you built
+    url: https://github.com/jeremiahsay/greencalculus-sdk/discussions
+    about: Questions, ideas and show-and-tell live in Discussions.
+  - name: API documentation
+    url: https://greencalculus.com/developers/docs?ref=github-issue
+    about: Endpoints, methodologies, error codes.
+  - name: Get a free API key (no card)
+    url: https://greencalculus.com/developers/welcome?plan=free&ref=github-issue
+    about: The corpus reads without a key. Calculations and version pinning need one.
+  - name: API status
+    url: https://greencalculus.com/developers/status
+    about: Check current availability before filing an outage.

@@ -41,7 +41,7 @@ export class GreenCalculusError extends Error {
 type Body = Record<string, unknown>;
 type Json = Record<string, any>;
 
-const VERSION = "0.2.0";
+const VERSION = "0.2.2";
 const SIGNUP_URL = "https://greencalculus.com/developers/welcome?plan=free&ref=sdk-js";
 
 export class GreenCalculus {
@@ -87,8 +87,8 @@ export class GreenCalculus {
       const e = (data && (data.error as Json)) || {};
       let msg: string = e.message ?? res.statusText;
       if (res.status === 401 && !this.apiKey) {
-        msg = `This call needs an API key (browse() and search() work without one). ` +
-          `Free, no card: ${SIGNUP_URL} — then new GreenCalculus({ apiKey }).`;
+        msg = `This call needs an API key (factor(), browse() and search() work ` +
+          `without one). Free, no card: ${SIGNUP_URL} — then new GreenCalculus({ apiKey }).`;
       }
       throw new GreenCalculusError(res.status, e.code ?? "http_error", msg);
     }
@@ -96,9 +96,52 @@ export class GreenCalculus {
   }
 
   // ── factors ──────────────────────────────────────────────────────────
-  /** Look up a single emission factor by key. `asOf` pins a past data version. */
-  factor(key: string, asOf?: string): Promise<Json> {
-    return this.request("GET", `/v1/factors/${encodeURIComponent(key)}`, { params: { as_of: asOf } });
+  /**
+   * Look up a single emission factor by key.
+   *
+   * Works without an API key — the corpus is open to read. `value` and `unit`
+   * are at the top level; the full sourced row is under `.factor`, so
+   * `f.factor.source.cell_ref` and `f.factor.citation.proof_url` read the same
+   * either way. With a key the response additionally carries `provenance`,
+   * `attribution`, `verification` and `proof_urls`.
+   *
+   * `asOf` pins a past data version. Reading the archive needs a free key, so
+   * a keyless call with `asOf` rejects rather than returning a current value
+   * under a past label.
+   */
+  async factor(key: string, asOf?: string): Promise<Json> {
+    if (asOf) this.requireKey("Pinning a past data version (asOf)");
+    if (this.apiKey) {
+      return this.request("GET", `/v1/factors/${encodeURIComponent(key)}`, { params: { as_of: asOf } });
+    }
+    // Keyless: the same row is served by the open browse route.
+    const page = await this.browse({ key_prefix: key, limit: 1 });
+    const rows: Json[] = page.factors ?? [];
+    const row = rows.find((r) => r.key === key);
+    if (!row) {
+      throw new GreenCalculusError(404, "not_found", `No factor called "${key}". Try search("${key}").`);
+    }
+    // Mirror the keyed envelope exactly, so the same accessors work on both
+    // paths: f.value, f.unit, f.factor.source, f.factor.citation. The keyed
+    // route additionally carries provenance/attribution/verification.
+    return {
+      value: row.factor?.value,
+      unit: row.factor?.unit,
+      gas: row.factor?.gas,
+      factor: row,
+      meta: page.meta,
+      served_version: page.meta?.gc_version,
+    };
+  }
+
+  private requireKey(what: string): void {
+    if (!this.apiKey) {
+      throw new GreenCalculusError(
+        401,
+        "unauthorized",
+        `${what} requires an API key. Free, no card: ${SIGNUP_URL} — then new GreenCalculus({ apiKey }).`
+      );
+    }
   }
 
   /**
@@ -120,8 +163,9 @@ export class GreenCalculus {
   }
 
   // ── calculations ─────────────────────────────────────────────────────
-  /** Run any calculation methodology. */
+  /** Run any calculation methodology. Needs a free API key. */
   calculate(methodology: string, body: Body): Promise<Json> {
+    this.requireKey("Calculations");
     return this.request("POST", `/v1/calculate/${methodology}`, { body });
   }
 
