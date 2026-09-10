@@ -350,7 +350,11 @@ function gcFetchBatch_(keys, apiKey, asOf, out, toCache) {
   });
   var responses;
   try { responses = UrlFetchApp.fetchAll(reqs); }
-  catch (e) { keys.forEach(function (k) { out[k] = { __error: GC_MSG.network }; }); var none = []; none.after = 0; return none; }
+  catch (e) {
+    // Logged so `clasp tail-logs` can say WHY a batch failed (2026-09-10: 214 keys, no message reached us).
+    try { console.error('gcFetchBatch_ fetchAll threw for ' + keys.length + ' keys: ' + (e && e.message ? e.message : e)); } catch (_) { /* no console */ }
+    keys.forEach(function (k) { out[k] = { __error: GC_MSG.network }; }); var none = []; none.after = 0; return none;
+  }
   var retry = []; retry.after = 0;
   var cacheKey = function (k) { return 'gc:' + (asOf || 'cur') + ':' + (apiKey ? 'k' : 'o') + ':' + k; };
   responses.forEach(function (res, i) {

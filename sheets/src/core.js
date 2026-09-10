@@ -21,7 +21,11 @@ var GC_KEYED_BATCH = 25;
 // reach api.greencalculus.com". The same 214 warm took < 5 s. Chunks keep
 // each fetchAll short and let the 24 s budget fail the TAIL with "timed out"
 // instead of the whole column with "unreachable".
-var GC_OPEN_BATCH = 50;
+var GC_OPEN_BATCH = 25;
+// 25, not 50: with the template's 214 keys a single fetchAll failed BOTH cold
+// and warm (curl fetched the same 214 warm in < 5 s), while the 5-key column
+// and the keyed path's 25-key batches always worked — a count limit, not a
+// speed one. 25 is the size proven in production.
 
 /**
  * The worked example a first-time user inserts with one click (welcome panel
