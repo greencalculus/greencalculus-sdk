@@ -98,12 +98,17 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          # Trusted publishing needs Node >= 22.14.0 and npm >= 11.5.1.
+          # The library itself still supports Node 18 — this is the build box,
+          # not the support floor.
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
 
       - name: npm new enough for trusted publishing
-        # Node 20 ships npm 10, which predates OIDC publishing.
-        run: npm install -g npm@latest
+        run: |
+          npm install -g npm@latest
+          node --version
+          npm --version
 
       - name: Read the version from package.json
         id: v

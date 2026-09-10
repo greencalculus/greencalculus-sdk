@@ -68,17 +68,36 @@ to share a repo.
 
 One-time setup, recorded here so it can be checked or rebuilt:
 
-- **PyPI** uses [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) —
-  owner `greencalculus`, repo `greencalculus-sdk`, workflow `release.yml`,
-  environment `release`. No API token is stored anywhere, which is why there
-  isn't one to expire.
-- **npm** uses [trusted publishing](https://docs.npmjs.com/trusted-publishers)
-  too — same repo, same workflow file. npm is retiring the automation tokens
-  that bypass 2FA, so a stored token is the thing that breaks next; the job
-  exchanges its OIDC identity for a short-lived credential instead.
-- Neither registry needs a secret in this repo. Both publishes carry
-  [provenance](https://docs.npmjs.com/generating-provenance-statements) — a
-  signed link from the published artefact back to the commit that built it.
+**[PyPI](https://docs.pypi.org/trusted-publishers/)** — Manage the project →
+*Publishing* → GitHub Actions:
+
+| Field | Value |
+|---|---|
+| Repository owner | `greencalculus` |
+| Repository name | `greencalculus-sdk` |
+| Workflow filename | `release.yml` |
+| Environment name | `release` |
+
+**[npm](https://docs.npmjs.com/trusted-publishers)** — the package →
+*Settings* → *Trusted publishing* → GitHub Actions:
+
+| Field | Value |
+|---|---|
+| Organization or user | `greencalculus` |
+| Repository | `greencalculus-sdk` |
+| Workflow filename | `release.yml` |
+| Environment name | `release` |
+
+Both are self-serve for whoever owns the project. Neither registry needs a
+secret in this repo — the job exchanges its OIDC identity for a short-lived
+credential, and the publish carries
+[provenance](https://docs.npmjs.com/generating-provenance-statements): a signed
+link from the published artefact back to the commit that built it.
+
+npm is retiring the automation tokens that bypass 2FA, so a stored `NPM_TOKEN`
+would be the next thing to break. That's why there isn't one. Note the CI box
+runs Node 22 — npm's OIDC publishing needs npm >= 11.5.1 and Node >= 22.14.0.
+The libraries themselves still support Node 18 and Python 3.9.
 
 ## Questions and what you built
 
