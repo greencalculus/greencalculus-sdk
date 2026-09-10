@@ -157,7 +157,11 @@ function gcBuildUrl(key, apiKey, asOf) {
  */
 function gcNormaliseKey(key) {
   if (key === null || key === undefined) return '';
-  return String(key).trim().toLowerCase().replace(/\s+/g, '');
+  // Whitespace only — never the case. MB keys are case-sensitive and 198 of
+  // them carry capitals (every GWP row: gwp.CH4_fossil.ar6_100); the API's
+  // key_prefix browse returned 0 rows for the lowercased form, so until
+  // 2026-09-10 no GWP factor was reachable from a cell.
+  return String(key).trim().replace(/\s+/g, '');
 }
 
 /**
@@ -280,7 +284,7 @@ function gcCitationShort(rec) {
 
 /** Select one field from an extracted record, for the cell. */
 function gcField(rec, field) {
-  var f = gcNormaliseKey(field || 'value');
+  var f = String(field || 'value').trim().toLowerCase().replace(/\s+/g, ''); // field names ARE case-insensitive
   if (f === 'source_cell' || f === 'cell_ref') f = 'cell';
   if (f === 'gwp_set') f = 'gwp';
   if (f === 'url' || f === 'verify') f = 'proof';

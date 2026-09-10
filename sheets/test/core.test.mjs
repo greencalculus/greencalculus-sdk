@@ -39,7 +39,10 @@ test('keyed URL uses the single-key lookup and carries as_of', () => {
   assert.equal(core.gcBuildUrl(KEY, 'gc_live_x'), 'https://api.greencalculus.com/v1/factors/' + encodeURIComponent(KEY));
 });
 test('key normalisation', () => {
-  assert.equal(core.gcNormaliseKey('  Grid.GBR.Electricity.Location_Based '), KEY);
+  // Case is preserved: MB keys are case-sensitive and every GWP key has capitals.
+  assert.equal(core.gcNormaliseKey('  grid.gbr.electricity.location_based '), KEY);
+  assert.equal(core.gcNormaliseKey(' gwp.CH4_fossil.ar6_100 '), 'gwp.CH4_fossil.ar6_100');
+  assert.equal(core.gcNormaliseKey('gwp.CH4_fossil. ar6_100'), 'gwp.CH4_fossil.ar6_100');
   assert.equal(core.gcNormaliseKey(null), '');
 });
 test('extract picks the exact key out of a prefix over-match', () => {
@@ -93,7 +96,9 @@ test('field selection, aliases and unknown fields', () => {
   assert.throws(() => core.gcField(r, 'price'), /Unknown field/);
 });
 test('collectKeys batches a 2-D range down to unique keys and keeps shape', () => {
-  const c = core.gcCollectKeys([[KEY, ''], ['GRID.GBR.electricity.location_based', 'grid.deu.electricity.lifecycle_intensity']]);
+  // Duplicates fold on the exact string only: keys are case-sensitive, so a
+  // differently-cased spelling is a different (and unknown) key, not this one.
+  const c = core.gcCollectKeys([[KEY, ''], [' ' + KEY + ' ', 'grid.deu.electricity.lifecycle_intensity']]);
   assert.deepEqual(c.unique, [KEY, 'grid.deu.electricity.lifecycle_intensity']);
   assert.equal(c.isScalar, false);
   const s = core.gcCollectKeys(KEY);
