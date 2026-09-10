@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use these client libraries in published work, please cite them as below."
+type: software
+title: "GreenCalculus SDKs"
+abstract: >
+  Official Python and JavaScript/TypeScript clients for the GreenCalculus carbon
+  API, plus a Google Sheets add-in and a Postman collection. Every emission factor
+  returned carries the exact cell it was read from and the data version it was read
+  at, and every calculation returns its full working with a deterministic receipt
+  hash, so a published figure can be reproduced and checked rather than trusted.
+  The corpus reads without an API key.
+authors:
+  - family-names: Say
+    given-names: Jeremiah
+    affiliation: "GreenCalculus"
+date-released: "2026-09-10"
+url: "https://greencalculus.com/developers"
+repository-code: "https://github.com/greencalculus/greencalculus-sdk"
+license: MIT
+keywords:
+  - carbon accounting
+  - emission factors
+  - API client
+  - GHG Protocol
+  - Scope 3
+  - PCAF
+  - embodied carbon
+  - reproducibility
+  - Python
+  - TypeScript
