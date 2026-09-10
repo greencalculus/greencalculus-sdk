@@ -100,8 +100,10 @@ export class GreenCalculus {
    * Look up a single emission factor by key.
    *
    * Works without an API key — the corpus is open to read. `value` and `unit`
-   * are lifted to the top level for convenience; the full sourced row stays
-   * under `.factor`, with `.source`, `.licence` and `.citation` alongside it.
+   * are at the top level; the full sourced row is under `.factor`, so
+   * `f.factor.source.cell_ref` and `f.factor.citation.proof_url` read the same
+   * either way. With a key the response additionally carries `provenance`,
+   * `attribution`, `verification` and `proof_urls`.
    *
    * `asOf` pins a past data version. Reading the archive needs a free key, so
    * a keyless call with `asOf` rejects rather than returning a current value
@@ -119,7 +121,17 @@ export class GreenCalculus {
     if (!row) {
       throw new GreenCalculusError(404, "not_found", `No factor called "${key}". Try search("${key}").`);
     }
-    return { ...row, value: row.factor?.value, unit: row.factor?.unit, meta: page.meta };
+    // Mirror the keyed envelope exactly, so the same accessors work on both
+    // paths: f.value, f.unit, f.factor.source, f.factor.citation. The keyed
+    // route additionally carries provenance/attribution/verification.
+    return {
+      value: row.factor?.value,
+      unit: row.factor?.unit,
+      gas: row.factor?.gas,
+      factor: row,
+      meta: page.meta,
+      served_version: page.meta?.gc_version,
+    };
   }
 
   private requireKey(what: string): void {

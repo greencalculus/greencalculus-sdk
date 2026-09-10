@@ -34,11 +34,18 @@ class KeylessReads(unittest.TestCase):
         method, path = req.call_args[0][0], req.call_args[0][1]
         self.assertEqual((method, path), ("GET", "/v1/factors"))
         self.assertEqual(req.call_args[1]["params"]["key_prefix"], ROW["key"])
-        # value/unit lifted; the sourced row kept intact
+        # The keyless envelope must MIRROR the keyed one: value/unit at the top,
+        # the sourced row under ["factor"]. Verified against a live keyed
+        # response 2026-09-10 — the two paths must not drift apart.
         self.assertEqual(f["value"], 0.13096)
         self.assertEqual(f["unit"], "kg CO2e per kWh")
-        self.assertEqual(f["source"]["cell_ref"], "'UK electricity'!E25")
+        self.assertEqual(f["factor"]["source"]["cell_ref"], "'UK electricity'!E25")
+        self.assertEqual(f["factor"]["citation"]["proof_url"], ROW["citation"]["proof_url"])
+        self.assertEqual(f["factor"]["key"], ROW["key"])
         self.assertEqual(f["meta"]["gc_version"], "2026.187")
+        # the row must not also be spread at the top level
+        self.assertNotIn("source", f)
+        self.assertNotIn("citation", f)
 
     def test_factor_uses_the_keyed_route_when_a_key_is_present(self):
         gc = GreenCalculus(api_key="gc_live_x")

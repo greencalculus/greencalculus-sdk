@@ -17,13 +17,14 @@ import { GreenCalculus } from "greencalculus";
 
 const gc = new GreenCalculus();                      // no key
 
-// value & unit are lifted to the top level for convenience; the full sourced
-// row stays under `.factor`, with `.source`, `.licence` and `.citation` beside it.
+// value & unit are at the top level; the full sourced row is under `.factor`.
+// The same accessors work with or without a key — with one, the response
+// additionally carries `provenance`, `attribution`, `verification`, `proof_urls`.
 const f = await gc.factor("grid.gbr.electricity.location_based");
-console.log(f.value, f.unit);            // 0.13096 kg CO2e per kWh
-console.log(f.source.id);                // DEFRA_2026
-console.log(f.source.cell_ref);          // 'UK electricity'!E25
-console.log(f.citation.proof_url);       // a page your reader can check it on
+console.log(f.value, f.unit);                 // 0.13096 kg CO2e per kWh
+console.log(f.factor.source.id);              // DEFRA_2026
+console.log(f.factor.source.cell_ref);        // 'UK electricity'!E25
+console.log(f.factor.citation.proof_url);     // a page your reader can check it on
 ```
 
 Don't know the key? Search, or browse a family — also keyless:

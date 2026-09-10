@@ -77,10 +77,13 @@ jobs:
           from greencalculus import GreenCalculus, GreenCalculusError
           gc = GreenCalculus()
           f = gc.factor("grid.gbr.electricity.location_based")
+          # The keyless envelope must mirror the keyed one, or the documented
+          # accessors break for one half of our users.
           assert isinstance(f["value"], (int, float)), f
           assert f["unit"], f
-          assert f["source"]["cell_ref"], f
-          assert f["citation"]["proof_url"].startswith("https://verify.greencalculus.com/"), f
+          assert f["factor"]["source"]["cell_ref"], f
+          assert f["factor"]["citation"]["proof_url"].startswith("https://verify.greencalculus.com/"), f
+          assert "source" not in f and "citation" not in f, "row leaked to the top level"
           assert gc.search("diesel", limit=1)["factors"], "keyless search returned nothing"
           for label, call in (
               ("as_of", lambda: gc.factor("grid.gbr.electricity.location_based", as_of="2026.150")),

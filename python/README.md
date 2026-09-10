@@ -18,16 +18,18 @@ from greencalculus import GreenCalculus
 gc = GreenCalculus()                                    # no key
 
 f = gc.factor("grid.gbr.electricity.location_based")
-print(f["value"], f["unit"])          # 0.13096 kg CO2e per kWh
-print(f["source"]["id"])              # DEFRA_2026
-print(f["source"]["cell_ref"])        # 'UK electricity'!E25
-print(f["citation"]["text"])          # the line you put in a report
-print(f["citation"]["proof_url"])     # a page your reader can check it on
+print(f["value"], f["unit"])                    # 0.13096 kg CO2e per kWh
+print(f["factor"]["source"]["id"])              # DEFRA_2026
+print(f["factor"]["source"]["cell_ref"])        # 'UK electricity'!E25
+print(f["factor"]["citation"]["text"])          # the line you put in a report
+print(f["factor"]["citation"]["proof_url"])     # a page your reader can check it on
 ```
 
-`value` and `unit` are lifted to the top level for convenience; the full sourced
-row stays under `f["factor"]`, with `f["source"]`, `f["licence"]` and
-`f["citation"]` alongside it.
+`value` and `unit` are at the top level; the full sourced row is under
+`f["factor"]`, with `["source"]`, `["licence"]` and `["citation"]` inside it.
+**The same accessors work with or without a key** — with one, the response
+additionally carries `provenance`, `attribution`, `verification` and
+`proof_urls`.
 
 Don't know the key? Search — also keyless:
 

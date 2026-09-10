@@ -123,9 +123,12 @@ class GreenCalculus:
         """Look up a single emission factor by its canonical key.
 
         Works without an API key: the corpus is open to read. ``value`` and
-        ``unit`` are lifted to the top level for convenience; the full sourced
-        row stays under ``["factor"]``, with ``["source"]``, ``["licence"]``
-        and ``["citation"]`` alongside it.
+        ``unit`` are at the top level; the full sourced row is under
+        ``["factor"]`` — so ``f["factor"]["source"]["cell_ref"]`` and
+        ``f["factor"]["citation"]["proof_url"]`` read the same either way.
+
+        With a key the response additionally carries ``provenance``,
+        ``attribution``, ``verification`` and ``proof_urls``.
 
         Pass ``as_of="2026.111"`` to pin a past data version for
         reproducibility. Reading the archive needs a free key, so a keyless
@@ -148,12 +151,18 @@ class GreenCalculus:
             raise GreenCalculusError(
                 404, "not_found", f'No factor called "{key}". Try search("{key}").'
             )
-        out = dict(row)
-        f = row.get("factor") or {}
-        out["value"] = f.get("value")
-        out["unit"] = f.get("unit")
-        out["meta"] = page.get("meta")
-        return out
+        inner = row.get("factor") or {}
+        # Mirror the keyed envelope exactly, so the same accessors work on both
+        # paths: f["value"], f["unit"], f["factor"]["source"], f["factor"]["citation"].
+        # The keyed route additionally carries provenance/attribution/verification.
+        return {
+            "value": inner.get("value"),
+            "unit": inner.get("unit"),
+            "gas": inner.get("gas"),
+            "factor": row,
+            "meta": page.get("meta"),
+            "served_version": (page.get("meta") or {}).get("gc_version"),
+        }
 
     def browse(self, **params: Any) -> Dict[str, Any]:
         """Browse the corpus — keyless, edge-cached. Full rows including the

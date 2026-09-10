@@ -23,9 +23,9 @@ from greencalculus import GreenCalculus
 gc = GreenCalculus()                                    # no key
 
 f = gc.factor("grid.gbr.electricity.location_based")
-print(f["value"], f["unit"])        # 0.13096 kg CO2e per kWh
-print(f["source"]["cell_ref"])      # 'UK electricity'!E25
-print(f["citation"]["proof_url"])   # a page anyone can check the number on
+print(f["value"], f["unit"])                       # 0.13096 kg CO2e per kWh
+print(f["factor"]["source"]["cell_ref"])           # 'UK electricity'!E25
+print(f["factor"]["citation"]["proof_url"])        # a page anyone can check it on
 ```
 
 ```ts
@@ -33,7 +33,7 @@ import { GreenCalculus } from "greencalculus";
 
 const gc = new GreenCalculus();                         // no key
 const f = await gc.factor("grid.gbr.electricity.location_based");
-console.log(f.value, f.unit, f.source.cell_ref);
+console.log(f.value, f.unit, f.factor.source.cell_ref);
 ```
 
 Don't know the key? Search for it — also keyless:
