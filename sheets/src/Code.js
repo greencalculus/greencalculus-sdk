@@ -319,7 +319,7 @@ function gcFetchRecords_(keys, asOf) {
   if (!misses.length) return out;
 
   var started = Date.now();
-  var batches = apiKey ? gcChunk(misses, GC_KEYED_BATCH) : [misses];
+  var batches = gcChunk(misses, apiKey ? GC_KEYED_BATCH : GC_OPEN_BATCH);
   var toCache = {};
   for (var b = 0; b < batches.length; b++) {
     var batch = batches[b];

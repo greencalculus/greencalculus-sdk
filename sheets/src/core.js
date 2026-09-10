@@ -16,6 +16,12 @@ var GC_PIN_RANGE = 'GC_AS_OF';
 var GC_PIN_SHEET = 'GreenCalculus';
 /** Keyed fetches per batch: the free tier allows 30/min, so a 100-key sheet must not fire at once. */
 var GC_KEYED_BATCH = 25;
+// Keyless (open browse) fetches, per fetchAll. One fetchAll of 214 cold keys
+// threw on 2026-09-10 (the by-country template): every cell read "Could not
+// reach api.greencalculus.com". The same 214 warm took < 5 s. Chunks keep
+// each fetchAll short and let the 24 s budget fail the TAIL with "timed out"
+// instead of the whole column with "unreachable".
+var GC_OPEN_BATCH = 50;
 
 /**
  * The worked example a first-time user inserts with one click (welcome panel
@@ -378,7 +384,7 @@ if (typeof module !== 'undefined' && module.exports) {
     GC_BASE_URL: GC_BASE_URL, GC_VERIFY_URL: GC_VERIFY_URL, GC_FIELDS: GC_FIELDS, GC_ROW_FIELDS: GC_ROW_FIELDS,
     gcBuildUrl: gcBuildUrl, gcNormaliseKey: gcNormaliseKey, gcExtract: gcExtract, gcCitation: gcCitation,
     gcField: gcField, gcCollectKeys: gcCollectKeys, gcMapGrid: gcMapGrid,
-    GC_PIN_RANGE: GC_PIN_RANGE, GC_PIN_SHEET: GC_PIN_SHEET, GC_KEYED_BATCH: GC_KEYED_BATCH,
+    GC_PIN_RANGE: GC_PIN_RANGE, GC_PIN_SHEET: GC_PIN_SHEET, GC_KEYED_BATCH: GC_KEYED_BATCH, GC_OPEN_BATCH: GC_OPEN_BATCH,
     gcNormaliseVersion: gcNormaliseVersion, gcEffectiveAsOf: gcEffectiveAsOf, gcChunk: gcChunk,
     GC_EXAMPLE: GC_EXAMPLE, GC_EXAMPLE_ROWS: GC_EXAMPLE_ROWS, GC_EXAMPLE_HEADERS: GC_EXAMPLE_HEADERS, gcExampleBlock: gcExampleBlock,
     gcCitationShort: gcCitationShort, gcCitationLinkFormula: gcCitationLinkFormula,
