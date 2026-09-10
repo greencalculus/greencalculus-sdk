@@ -23,6 +23,8 @@ Installing from the Marketplace opens the sidebar (`onInstall` runs in `AuthMode
 
 ## Sidebar (Extensions → GreenCalculus → Open GreenCalculus)
 
+**Factor-change alerts** — *Watch the factors in this workbook* reads every key the workbook uses (quoted keys in `GC_` formulas and key-shaped cells) and opens `/factor-watch/?ref=sheets&sections=…&keys=…` in a new tab; the email is entered there. Only keys leave the sheet; no Google identity scope is used.
+
 Search the corpus in plain text, then **Insert value**, **Value + source**, **Citation link** (short citation that links to the proof page) or **Full citation** at the selected cell. Inserts pre-fetch the record so the cell fills from cache; Google still shows "Loading…" for its own round trip. The same panel holds the workbook version pin and the API key.
 
 ## Workbook version pin
@@ -119,8 +121,9 @@ Recorded as reported; each becomes a Phase 1 item or a documented non-issue.
 |---|---|---|
 | Marketplace v1 (@1) | `AKfycbxzQIP6tExce7_ywrNPo38fmVUb6nrGVqx8GPbiKYuo8l2bih1-Q0nP7-m6PTi2IJVtmw` | 9 Sep 2026, `clasp deploy --description "Marketplace v1"` |
 | Marketplace v2 (@2) | same deployment, moved to script **version 2** | 10 Sep 2026 — case-preserving keys, keyless batches of 25, unpinned 429 → open route, fetchAll exceptions logged (PRs #16–#19) |
+| Marketplace v3 (@3) | same deployment, script **version 3** | 10 Sep 2026 — sidebar *Watch the factors in this workbook* (factor-change alerts via /factor-watch/, PR #21) |
 
-The Marketplace SDK's **Editor add-on** integration takes the **script ID + a script VERSION number**, not the deployment ID (that is for Workspace add-ons). The listing currently names version 1; change it to **2** in App Configuration when the listing is next (re)submitted — version 1 has none of the 10 Sep fixes.
+The Marketplace SDK's **Editor add-on** integration takes the **script ID + a script VERSION number**, not the deployment ID (that is for Workspace add-ons). The listing currently names version 1; change it to **3** in App Configuration when the listing is next (re)submitted — version 1 has none of the 10 Sep fixes.
 
 After any code change, in this order:
 
