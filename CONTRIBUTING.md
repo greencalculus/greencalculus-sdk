@@ -4,7 +4,7 @@ Two kinds of contribution matter most here, and neither one requires writing cod
 
 ## Tell us a factor is missing
 
-[Request a factor](https://github.com/jeremiahsay/greencalculus-sdk/issues/new?template=factor-request.yml).
+[Request a factor](https://github.com/greencalculus/greencalculus-sdk/issues/new?template=factor-request.yml).
 The corpus grows from these. Describe the real activity rather than a category —
 "HVO renewable diesel, well-to-tank, Netherlands, per litre" is actionable;
 "biofuels" is not.
@@ -14,7 +14,7 @@ names often differ from what you'd guess.
 
 ## Tell us a number is wrong
 
-[Report a wrong value](https://github.com/jeremiahsay/greencalculus-sdk/issues/new?template=wrong-value.yml).
+[Report a wrong value](https://github.com/greencalculus/greencalculus-sdk/issues/new?template=wrong-value.yml).
 A carbon figure that is quietly wrong is worse than one that is missing. Every
 factor carries a verification link (`citation.proof_url`) showing the publisher,
 the document and the exact cell — if that cell doesn't say what we say it says,
@@ -50,5 +50,5 @@ A few conventions worth knowing:
 
 ## Questions and what you built
 
-[Discussions](https://github.com/jeremiahsay/greencalculus-sdk/discussions) —
+[Discussions](https://github.com/greencalculus/greencalculus-sdk/discussions) —
 questions, ideas, and things you've built with the API.

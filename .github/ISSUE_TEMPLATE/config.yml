@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
   - name: Ask a question / show what you built
-    url: https://github.com/jeremiahsay/greencalculus-sdk/discussions
+    url: https://github.com/greencalculus/greencalculus-sdk/discussions
     about: Questions, ideas and show-and-tell live in Discussions.
   - name: API documentation
     url: https://greencalculus.com/developers/docs?ref=github-issue

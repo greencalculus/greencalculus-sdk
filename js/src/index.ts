@@ -41,7 +41,7 @@ export class GreenCalculusError extends Error {
 type Body = Record<string, unknown>;
 type Json = Record<string, any>;
 
-const VERSION = "0.2.2";
+const VERSION = "0.2.3";
 const SIGNUP_URL = "https://greencalculus.com/developers/welcome?plan=free&ref=sdk-js";
 
 export class GreenCalculus {

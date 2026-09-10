@@ -28,8 +28,8 @@ dependencies = []
 [project.urls]
 Homepage = "https://greencalculus.com/developers"
 Documentation = "https://greencalculus.com/developers/docs"
-Source = "https://github.com/jeremiahsay/greencalculus-sdk"
-Issues = "https://github.com/jeremiahsay/greencalculus-sdk/issues"
+Source = "https://github.com/greencalculus/greencalculus-sdk"
+Issues = "https://github.com/greencalculus/greencalculus-sdk/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -115,7 +115,7 @@ except GreenCalculusError as e:
 
 - Docs: https://greencalculus.com/developers/docs
 - Data rights & continuity: https://greencalculus.com/developers/trust
-- Request a factor / report a wrong value: https://github.com/jeremiahsay/greencalculus-sdk/issues
+- Request a factor / report a wrong value: https://github.com/greencalculus/greencalculus-sdk/issues
 - MCP server (agents): `mcp.greencalculus.com`
 
 MIT licensed.

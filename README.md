@@ -1,6 +1,6 @@
 # GreenCalculus SDKs
 
-[![CI](https://github.com/jeremiahsay/greencalculus-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/jeremiahsay/greencalculus-sdk/actions/workflows/ci.yml)
+[![CI](https://github.com/greencalculus/greencalculus-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/greencalculus/greencalculus-sdk/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/greencalculus?label=pypi)](https://pypi.org/project/greencalculus/)
 [![npm](https://img.shields.io/npm/v/greencalculus?label=npm)](https://www.npmjs.com/package/greencalculus)
 [![MIT](https://img.shields.io/badge/licence-MIT-blue)](./LICENSE)
@@ -83,9 +83,9 @@ Listed on the [official MCP registry](https://registry.modelcontextprotocol.io) 
 
 ## Missing a factor? Think a number is wrong?
 
-- [**Request a factor**](https://github.com/jeremiahsay/greencalculus-sdk/issues/new?template=factor-request.yml) — the corpus grows from these.
-- [**Report a wrong value**](https://github.com/jeremiahsay/greencalculus-sdk/issues/new?template=wrong-value.yml) — a carbon figure that is quietly wrong is worse than one that is missing. Every factor's verification page names the cell we read; if it doesn't say what we say it says, tell us in public.
-- [**Discussions**](https://github.com/jeremiahsay/greencalculus-sdk/discussions) — questions, ideas, and what you've built.
+- [**Request a factor**](https://github.com/greencalculus/greencalculus-sdk/issues/new?template=factor-request.yml) — the corpus grows from these.
+- [**Report a wrong value**](https://github.com/greencalculus/greencalculus-sdk/issues/new?template=wrong-value.yml) — a carbon figure that is quietly wrong is worse than one that is missing. Every factor's verification page names the cell we read; if it doesn't say what we say it says, tell us in public.
+- [**Discussions**](https://github.com/greencalculus/greencalculus-sdk/discussions) — questions, ideas, and what you've built.
 
 ## Links
 
