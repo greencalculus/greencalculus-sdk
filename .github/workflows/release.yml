@@ -1,0 +1,146 @@
+name: Release
+
+# Self-healing publish: the manifest version is the only source of truth.
+#
+# Every run asks the registry "do you already have this version?" and publishes
+# only when the answer is no. So a merge that bumps the version ships it, a
+# merge that doesn't is a no-op, and a publish that failed (expired token,
+# registry outage, credentials not yet wired) is retried by the weekly run
+# without needing a new commit. No tags to remember, no release checklist.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "python/**"
+      - "js/**"
+      - ".github/workflows/release.yml"
+  schedule:
+    # Weekly, so a failed or blocked publish heals itself once creds are fixed.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  python:
+    name: PyPI
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write        # PyPI Trusted Publishing — no token stored anywhere
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Read the version from pyproject.toml
+        id: v
+        working-directory: python
+        run: |
+          V=$(python -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+
+      - name: Is it already on PyPI?
+        id: check
+        run: |
+          V="${{ steps.v.outputs.version }}"
+          CODE=$(curl -sS -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/greencalculus/$V/json")
+          if [ "$CODE" = "200" ]; then
+            echo "PyPI already has greencalculus $V — nothing to do." >> "$GITHUB_STEP_SUMMARY"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif [ "$CODE" = "404" ]; then
+            echo "PyPI is missing greencalculus **$V** — publishing." >> "$GITHUB_STEP_SUMMARY"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::PyPI returned HTTP $CODE for version $V — refusing to guess."
+            exit 1
+          fi
+
+      - name: Tests
+        if: steps.check.outputs.publish == 'true'
+        working-directory: python
+        run: python -m unittest discover -s tests -v
+
+      - name: Build
+        if: steps.check.outputs.publish == 'true'
+        working-directory: python
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+          python -m twine check dist/*
+
+      - name: Publish
+        if: steps.check.outputs.publish == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist
+          # A re-run that races another publish must not fail the workflow.
+          skip-existing: true
+
+  js:
+    name: npm
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write        # npm trusted publishing — no token, provenance included
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Trusted publishing needs Node >= 22.14.0 and npm >= 11.5.1.
+          # The library itself still supports Node 18 — this is the build box,
+          # not the support floor.
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: npm new enough for trusted publishing
+        run: |
+          npm install -g npm@latest
+          node --version
+          npm --version
+
+      - name: Read the version from package.json
+        id: v
+        working-directory: js
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Is it already on npm?
+        id: check
+        run: |
+          V="${{ steps.v.outputs.version }}"
+          FOUND=$(npm view "greencalculus@$V" version 2>/dev/null || true)
+          if [ -n "$FOUND" ]; then
+            echo "npm already has greencalculus $V — nothing to do." >> "$GITHUB_STEP_SUMMARY"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "npm is missing greencalculus **$V** — publishing." >> "$GITHUB_STEP_SUMMARY"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install, typecheck, build
+        if: steps.check.outputs.publish == 'true'
+        working-directory: js
+        run: |
+          npm ci || npm install
+          npx tsc --noEmit
+          npm run build
+
+      - name: Publish
+        if: steps.check.outputs.publish == 'true'
+        working-directory: js
+        # Trusted publishing: npm exchanges the job's OIDC token for a
+        # short-lived credential. No NODE_AUTH_TOKEN, and provenance is
+        # attached automatically. npm is retiring the 2FA-bypass automation
+        # tokens this used to need.
+        run: npm publish --access public
