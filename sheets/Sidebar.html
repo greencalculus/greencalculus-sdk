@@ -82,6 +82,13 @@
   <div class="note" id="pinnote">Pinned workbooks re-open to the same numbers: every <span class="pin">GC_</span> formula reads the factor as it stood at that version, and citations carry it. That is what an audit re-run needs.</div>
 </section>
 
+<section id="watchsec">
+  <h3>Factor-change alerts</h3>
+  <div class="muted">Publishers revise factors every year and sometimes between. Get an email when any factor this workbook uses changes — old value, new value, and whether to re-pin.</div>
+  <div class="row"><button class="btn p" id="watchBtn">Watch the factors in this workbook</button></div>
+  <div class="muted" id="watchhelp" style="margin-top:6px">Reads the keys in your formulas and opens the sign-up page with them filled in. Only the keys leave the sheet.</div>
+</section>
+
 <section>
   <h3>API key</h3>
   <div class="status" id="keystatus">…</div>
@@ -185,6 +192,16 @@
   $('pinToBtn').addEventListener('click', function(){ pin($('pinVer').value); });
   $('unpinBtn').addEventListener('click', function(){ msg('Unpinning…'); google.script.run.withSuccessHandler(function(st){ S=st; render(); msg('Unpinned. Formulas follow the current version.'); }).withFailureHandler(fail).gcUnpinWorkbook(); });
   function pin(v){ msg('Pinning…'); google.script.run.withSuccessHandler(function(st){ S=st; render(); msg('Pinned to ' + st.pin + '. Recalculating formulas…'); }).withFailureHandler(fail).gcPinWorkbook(v); }
+  $('watchBtn').addEventListener('click', function(){
+    $('watchBtn').disabled = true; msg('Reading the keys in this workbook…');
+    google.script.run.withSuccessHandler(function(r){
+      $('watchBtn').disabled = false;
+      if (!r.count) { msg('No GreenCalculus keys found yet — insert a factor first, then come back.', true); return; }
+      var a = document.createElement('a'); a.href = r.url; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
+      $('watchhelp').innerHTML = 'Found <b>' + r.count + '</b> key' + (r.count===1?'':'s') + (r.count > 25 ? ' (the first 25 are listed on the page)' : '') + ' — e.g. <span class="pin">' + esc(r.sample[0]) + '</span>. Finish on the page that opened: <a href="' + esc(r.url) + '">open it again</a>.';
+      msg('');
+    }).withFailureHandler(function(e){ $('watchBtn').disabled = false; fail(e); }).gcWatchWorkbook();
+  });
   $('saveKey').addEventListener('click', function(){ var k=$('key').value.trim(); if(!k){ msg('Paste a key first.',true); return; } msg('Saving…'); google.script.run.withSuccessHandler(function(st){ S=st; $('key').value=''; render(); msg('Key saved.'); }).withFailureHandler(fail).gcSaveKey(k); });
   $('clearKey').addEventListener('click', function(){ google.script.run.withSuccessHandler(function(st){ S=st; render(); msg('Key removed.'); }).withFailureHandler(fail).gcClearKey(); });
   load();

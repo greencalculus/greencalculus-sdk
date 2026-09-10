@@ -199,3 +199,15 @@ test('open (keyless) fetches are chunked too', () => {
   assert.equal(chunks.length, 9);
   assert.equal(chunks.flat().length, 214);
 });
+test('workbook keys: formulas and key-shaped cells, deduped, case kept, junk ignored', () => {
+  const formulas = [['=GC_FACTOR("grid.gbr.electricity.location_based")', ''], ['=GC_EMISSIONS(A2:A3, B2:B3)', '=HYPERLINK(GC_FACTOR("gwp.CH4_fossil.ar6_100","proof"), GC_CITE("gwp.CH4_fossil.ar6_100","short"))']];
+  const values = [['grid.gbr.electricity.location_based', 1000], ['fuels.gbr.diesel_average_biofuel_blend.litre', 'not a key'], ['UK electricity', '2026.187']];
+  const keys = core.gcExtractWorkbookKeys(formulas, values);
+  assert.deepEqual(keys, ['grid.gbr.electricity.location_based', 'gwp.CH4_fossil.ar6_100', 'fuels.gbr.diesel_average_biofuel_blend.litre']);
+  const u = core.gcWatchUrl(keys);
+  assert.ok(u.startsWith('https://greencalculus.com/factor-watch/?ref=sheets&sections=grid%2Cgwp%2Cfuels&keys='));
+  assert.ok(decodeURIComponent(u).includes('gwp.CH4_fossil.ar6_100'));
+  const many = Array.from({ length: 40 }, (_, i) => 'grid.c' + i + '.electricity.lifecycle_intensity');
+  assert.equal(decodeURIComponent(core.gcWatchUrl(many).split('keys=')[1]).split(',').length, 25);
+});
+

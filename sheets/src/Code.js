@@ -96,6 +96,26 @@ function gcInsertFormula(key, type) {
   return cell.getSheet().getName() + '!' + cell.getA1Notation();
 }
 
+/**
+ * Factor-change alerts for this workbook (playbook 6.1): collect every key the
+ * workbook uses and hand back the /factor-watch/ URL that carries them. The
+ * sidebar opens it; the user types their email THERE, on the site, under the
+ * privacy policy that already covers that form. Nothing but keys leaves the
+ * sheet, and no Google identity scope is needed.
+ */
+function gcWatchWorkbook() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var formulas = []; var values = [];
+  ss.getSheets().forEach(function (sh) {
+    var r = sh.getDataRange();
+    if (r.getNumRows() * r.getNumColumns() > 200000) return; // a huge sheet: skip rather than time out
+    formulas = formulas.concat(r.getFormulas());
+    values = values.concat(r.getValues());
+  });
+  var keys = gcExtractWorkbookKeys(formulas, values);
+  return { count: keys.length, sample: keys.slice(0, 5), url: gcWatchUrl(keys) };
+}
+
 function gcSaveKey(k) {
   k = String(k || '').trim();
   if (!/^gc_(live|test)_[A-Za-z0-9_-]{8,}$/.test(k)) throw new Error('That does not look like a GreenCalculus key (gc_live_…).');

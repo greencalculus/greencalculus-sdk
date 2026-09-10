@@ -11,6 +11,8 @@
 var GC_BASE_URL = 'https://api.greencalculus.com';
 var GC_VERIFY_URL = 'https://verify.greencalculus.com';
 var GC_SIGNUP_URL = 'https://greencalculus.com/developers/welcome?plan=free&ref=sheets';
+var GC_WATCH_URL  = 'https://greencalculus.com/factor-watch/';
+var GC_WATCH_MAX_KEYS = 25; // keeps the URL well under 2 KB; the page records signup_url verbatim
 /** Named range that pins a whole workbook to one data version (item 4). */
 var GC_PIN_RANGE = 'GC_AS_OF';
 var GC_PIN_SHEET = 'GreenCalculus';
@@ -329,6 +331,44 @@ function gcEffectiveAsOf(explicit, pin) {
 }
 
 /** Split an array into batches of n. */
+/**
+ * Every factor key a workbook uses, from its formulas and its cells: the
+ * quoted key inside any GC_ formula (=GC_FACTOR("grid.gbr…"), GC_CITE(…)),
+ * plus any cell whose text IS a key (the usual layout: keys in a column that
+ * formulas point at). Pure; the Apps Script side hands in the grids.
+ *
+ * @param {Array<Array<string>>} formulas grid from getFormulas()
+ * @param {Array<Array>} values grid from getValues()
+ * @return {Array<string>} unique keys, in first-seen order
+ */
+function gcExtractWorkbookKeys(formulas, values) {
+  var seen = {}; var out = [];
+  var add = function (k) { k = gcNormaliseKey(k); if (k && /^[a-z0-9_]+(\.[A-Za-z0-9_-]+){2,}$/.test(k) && !seen[k]) { seen[k] = true; out.push(k); } };
+  var re = /GC_(?:FACTOR|FACTOR_ROW|CITE|EMISSIONS)\s*\(\s*"([^"]+)"/g;
+  (formulas || []).forEach(function (row) { (row || []).forEach(function (f) {
+    if (typeof f !== 'string' || f.indexOf('GC_') < 0) return;
+    var m; re.lastIndex = 0; while ((m = re.exec(f))) add(m[1]);
+  }); });
+  (values || []).forEach(function (row) { (row || []).forEach(function (v) { if (typeof v === 'string' && v.length < 120) add(v); }); });
+  return out;
+}
+
+/**
+ * The /factor-watch/ URL for a set of keys. The page's form records the exact
+ * page URL it was submitted from (signup_url), so the keys and the ref travel
+ * with the signup without the add-on sending anything but the keys the user
+ * already typed. Capped at GC_WATCH_MAX_KEYS; sections carry the rest.
+ */
+function gcWatchUrl(keys) {
+  keys = (keys || []).slice(0, GC_WATCH_MAX_KEYS);
+  var sections = []; var seen = {};
+  (keys || []).forEach(function (k) { var s = k.split('.')[0]; if (!seen[s]) { seen[s] = true; sections.push(s); } });
+  var u = GC_WATCH_URL + '?ref=sheets';
+  if (sections.length) u += '&sections=' + encodeURIComponent(sections.join(','));
+  if (keys.length) u += '&keys=' + encodeURIComponent(keys.join(','));
+  return u;
+}
+
 function gcChunk(arr, n) {
   var out = [];
   for (var i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
@@ -387,7 +427,7 @@ if (typeof module !== 'undefined' && module.exports) {
     GC_BASE_URL: GC_BASE_URL, GC_VERIFY_URL: GC_VERIFY_URL, GC_FIELDS: GC_FIELDS, GC_ROW_FIELDS: GC_ROW_FIELDS,
     gcBuildUrl: gcBuildUrl, gcNormaliseKey: gcNormaliseKey, gcExtract: gcExtract, gcCitation: gcCitation,
     gcField: gcField, gcCollectKeys: gcCollectKeys, gcMapGrid: gcMapGrid,
-    GC_PIN_RANGE: GC_PIN_RANGE, GC_PIN_SHEET: GC_PIN_SHEET, GC_KEYED_BATCH: GC_KEYED_BATCH, GC_OPEN_BATCH: GC_OPEN_BATCH,
+    GC_PIN_RANGE: GC_PIN_RANGE, GC_PIN_SHEET: GC_PIN_SHEET, GC_KEYED_BATCH: GC_KEYED_BATCH, GC_OPEN_BATCH: GC_OPEN_BATCH, GC_WATCH_URL: GC_WATCH_URL, GC_WATCH_MAX_KEYS: GC_WATCH_MAX_KEYS, gcExtractWorkbookKeys: gcExtractWorkbookKeys, gcWatchUrl: gcWatchUrl,
     gcNormaliseVersion: gcNormaliseVersion, gcEffectiveAsOf: gcEffectiveAsOf, gcChunk: gcChunk,
     GC_EXAMPLE: GC_EXAMPLE, GC_EXAMPLE_ROWS: GC_EXAMPLE_ROWS, GC_EXAMPLE_HEADERS: GC_EXAMPLE_HEADERS, gcExampleBlock: gcExampleBlock,
     gcCitationShort: gcCitationShort, gcCitationLinkFormula: gcCitationLinkFormula,
