@@ -82,7 +82,41 @@ Generated 2026-09-09 from the 512 px transparent logo master (`store/icon-source
 | `icon-128-consent-white.png` | OAuth consent screen logo (opaque white background) |
 | `card-220x140.svg` → `card-220x140.png` | Marketplace card banner. Edit the SVG, re-render: `rsvg-convert -w 220 -h 140 -f png card-220x140.svg -o card-220x140.png` |
 | `screenshot-1..4.png` | 1280×800, captured from the test sheet — shot list below |
-| `demo.mp4` `demo.gif` | **Re-recorded 11 Sep** from a **Marketplace-installed** add-on (the 9 Sep take used the bound test script and carried a stale value in A3). 36 s 1280×800 H.264; 12 s 800px GIF of the insert + citation for social. Arc: Extensions → GreenCalculus → sidebar → search *uk grid electricity* → **Insert value** → `0.13096` → **Citation link** in B1 → click it → `verify.greencalculus.com` proof page → back to the sheet. Recipe below. |
+| `demo.mp4` | **The listing video.** 22.7 s, 1280×800, captioned, with an end card. Built from `demo-source-cut.mp4` by `demo-build/build.sh`. |
+| `demo-social.mp4` | Identical, except the end card carries `greencalculus.com`. For LinkedIn / Product Hunt / the guide — **not** the Marketplace, where the viewer already has an Install button and a URL only sends them away. |
+| `demo-source-cut.mp4` | The uncaptioned 36 s cut, re-recorded 11 Sep from a **Marketplace install**. Keep it: every re-cut starts here, not from a new recording. |
+| `demo.gif` | 6 s of the insert + citation beat, captioned, 800px, for social. |
+| `demo-build/` | `build.sh` plus the caption and end-card PNGs. `./build.sh <src> <caps> <endcard> <out>`. |
+
+### Editing the demo — what the speed ramp is actually doing
+
+`build.sh` compresses the waiting and leaves the substance alone. **Speed is chosen by what is on
+screen, never by whether pixels are moving** — that distinction cost two rebuilds:
+
+| Input window | Speed | Why |
+|---|---|---|
+| 1.20–3.97 | 1× | the Extensions menu — proves it is an installed add-on |
+| 3.97–9.77 | 3× | sidebar loading |
+| 9.77–10.63 | 1× | typing the search |
+| 10.63–16.27 | 3× | waiting |
+| 16.27–17.17 | 1× | Insert value |
+| 17.17–20.50 | 3× | cell says "Loading…" |
+| **20.50–23.60** | **1×** | **the citation sitting in B1 — the second most important frame in the video** |
+| 23.60–25.25 | 3× | the blank "Redirecting you to…" interstitial |
+| 25.25–35.00 | 1.6× | the proof page — trimmed, never compressed |
+| 35.00–36.00 | 1× | back to the sheet |
+
+`freezedetect` reports the citation and the proof page as frozen, because they are. Both are the
+payoff. An early build sped the citation 3× and ran the blank redirect page at full speed — exactly
+backwards, and every automated measure said it had improved. **Check what a caption is sitting on
+top of by extracting that frame, not by trusting the timings.**
+
+Result: static fell from **70% of 36 s to 24% of 22.7 s**, and 2.5 s of what remains is the end card,
+which is meant to be still.
+
+**`-t` is required on the caption pass.** The `-loop 1` image inputs never end, so without it the
+overlay runs forever — one build reached 107 MB before it was killed. `build.sh` derives it from the
+ramped file with ffprobe.
 
 ### Re-recording the demo (worked 11 Sep 2026)
 
