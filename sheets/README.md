@@ -4,7 +4,7 @@
 
 Keyless by default — the GreenCalculus corpus is open to read. An API key (free) adds `as_of` version pinning.
 
-**Install it: [GreenCalculus — Emission Factors on the Google Workspace Marketplace](https://workspace.google.com/marketplace/app/greencalculus_emission_factors/172913449875)** — listed and Google-verified since 11 September 2026, so the consent prompt names the three scopes and shows no unverified-app warning. Or read [the guide](https://greencalculus.com/guides/emission-factors-google-sheets-excel/), which also carries a Scope 2 template you can copy without installing anything.
+**Install it: [GreenCalculus — Emission Factors on the Google Workspace Marketplace](https://workspace.google.com/marketplace/app/greencalculus_emission_factors/172913449875)** — listed and Google-verified since 11 September 2026, so the consent prompt names the three scopes and shows no unverified-app warning. Or read [the guide](https://greencalculus.com/guides/emission-factors-google-sheets-excel/), which also carries a 40-country Scope 2 template. The template is a plain sheet, not a bound script: it **needs the add-on installed**, which is the point — copying it is how someone discovers they want the add-on, and Google no longer warns that a script is coming with it.
 
 ## Functions
 
