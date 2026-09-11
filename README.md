@@ -6,8 +6,11 @@
 [![MIT](https://img.shields.io/badge/licence-MIT-blue)](./LICENSE)
 [![Free tier — no card](https://img.shields.io/badge/free%20tier-no%20card-brightgreen)](https://greencalculus.com/developers/welcome?plan=free&ref=github-sdk-badge)
 [![smithery](https://smithery.ai/badge/greencalculus/api)](https://smithery.ai/servers/greencalculus/api)
+[![Google Workspace Marketplace](https://img.shields.io/badge/Google%20Sheets-add--on-34A853)](https://workspace.google.com/marketplace/app/greencalculus_emission_factors/172913449875)
 
 Official client libraries for the **[GreenCalculus API](https://greencalculus.com/developers?ref=github-sdk)** — sourced greenhouse-gas emission factors and audit-traced calculations. Every value comes back with **the exact cell it came from and the data version it was read at**, so you return citable numbers instead of guesses.
+
+Not writing code? The same corpus is a spreadsheet formula: the **[Google Sheets add-on](https://workspace.google.com/marketplace/app/greencalculus_emission_factors/172913449875)** has been listed and Google-verified since 11 September 2026 — see [`sheets/`](./sheets).
 
 ## Try it with no API key
 
