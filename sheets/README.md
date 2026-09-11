@@ -83,6 +83,7 @@ Generated 2026-09-09 from the 512 px transparent logo master (`store/icon-source
 | `card-220x140.svg` → `card-220x140.png` | Marketplace card banner. Edit the SVG, re-render: `rsvg-convert -w 220 -h 140 -f png card-220x140.svg -o card-220x140.png` |
 | `screenshot-1..4.png` | 1280×800, captured from the test sheet — shot list below |
 | `demo.mp4` | **The listing video.** 22.7 s, 1280×800, captioned, with an end card. Built from `demo-source-cut.mp4` by `demo-build/build.sh`. |
+| `demo-youtube.mp4` | **Upload this one to YouTube**, not `demo.mp4`. Same cut, padded to 1920×1080 on the brand ground — the cut is 16:10 and YouTube is 16:9, so an unpadded upload gets ragged black bars. |
 | `demo-social.mp4` | Identical, except the end card carries `greencalculus.com`. For LinkedIn / Product Hunt / the guide — **not** the Marketplace, where the viewer already has an Install button and a URL only sends them away. |
 | `demo-source-cut.mp4` | The uncaptioned 36 s cut, re-recorded 11 Sep from a **Marketplace install**. Keep it: every re-cut starts here, not from a new recording. |
 | `demo.gif` | 6 s of the insert + citation beat, captioned, 800px, for social. |
