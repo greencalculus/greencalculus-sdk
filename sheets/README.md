@@ -4,6 +4,8 @@
 
 Keyless by default — the GreenCalculus corpus is open to read. An API key (free) adds `as_of` version pinning.
 
+**Install it: [GreenCalculus — Emission Factors on the Google Workspace Marketplace](https://workspace.google.com/marketplace/app/greencalculus_emission_factors/172913449875)** — listed and Google-verified since 11 September 2026, so the consent prompt names the three scopes and shows no unverified-app warning. Or read [the guide](https://greencalculus.com/guides/emission-factors-google-sheets-excel/), which also carries a Scope 2 template you can copy without installing anything.
+
 ## Functions
 
 | Formula | Returns |
@@ -123,7 +125,23 @@ Recorded as reported; each becomes a Phase 1 item or a documented non-issue.
 | Marketplace v2 (@2) | same deployment, moved to script **version 2** | 10 Sep 2026 — case-preserving keys, keyless batches of 25, unpinned 429 → open route, fetchAll exceptions logged (PRs #16–#19) |
 | Marketplace v3 (@3) | same deployment, script **version 3** | 10 Sep 2026 — sidebar *Watch the factors in this workbook* (factor-change alerts via /factor-watch/, PR #21) |
 
-The Marketplace SDK's **Editor add-on** integration takes the **script ID + a script VERSION number**, not the deployment ID (that is for Workspace add-ons). The listing currently names version 1; change it to **3** in App Configuration when the listing is next (re)submitted — version 1 has none of the 10 Sep fixes.
+## The listing is LIVE
+
+**Approved by Google on 11 September 2026.**
+
+> https://workspace.google.com/marketplace/app/greencalculus_emission_factors/172913449875
+
+Verified on the day of approval: the listing serves script **version 3**, and the OAuth
+consent screen shows **Verified** on every Trust-and-Safety item — so an installer sees the
+three scopes and no unverified-app warning, and the 100-user cap is gone.
+
+That version number matters more than it looks. Version 1 lowercased every factor key, which
+makes all 198 `gwp.*` factors unreachable from a cell; it also had no keyless batching, so a
+200-row sheet blew the 30 s custom-function limit. Anything listed on version 1 would have
+shipped those to strangers. **After any code change, re-read the version number in
+App Configuration — the listing does not follow `clasp push`.**
+
+The Marketplace SDK's **Editor add-on** integration takes the **script ID + a script VERSION number**, not the deployment ID (that is for Workspace add-ons).
 
 After any code change, in this order:
 
