@@ -31,6 +31,10 @@ print(f["factor"]["source"]["cell_ref"])           # 'UK electricity'!E25
 print(f["factor"]["citation"]["proof_url"])        # a page anyone can check it on
 ```
 
+That citation line is a [published specification](https://greencalculus.com/developers/citation/) — five fields,
+the upstream publisher named before us, and free for anyone to implement,
+including against their own data.
+
 ```ts
 import { GreenCalculus } from "greencalculus";
 

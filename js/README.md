@@ -27,6 +27,9 @@ console.log(f.factor.source.cell_ref);        // 'UK electricity'!E25
 console.log(f.factor.citation.proof_url);     // a page your reader can check it on
 ```
 
+The citation format is [specified](https://greencalculus.com/developers/citation/) and stable: five fields, the
+publisher named before us, free to adopt.
+
 Don't know the key? Search, or browse a family — also keyless:
 
 ```ts
