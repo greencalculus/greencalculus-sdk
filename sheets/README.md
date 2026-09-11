@@ -82,7 +82,31 @@ Generated 2026-09-09 from the 512 px transparent logo master (`store/icon-source
 | `icon-128-consent-white.png` | OAuth consent screen logo (opaque white background) |
 | `card-220x140.svg` → `card-220x140.png` | Marketplace card banner. Edit the SVG, re-render: `rsvg-convert -w 220 -h 140 -f png card-220x140.svg -o card-220x140.png` |
 | `screenshot-1..4.png` | 1280×800, captured from the test sheet — shot list below |
-| `demo.mp4` `demo.gif` | Phase 1.7, recorded 9 Sep: 41 s 1280×800 H.264 for the listing/YouTube; 12 s 800px GIF of the formula + citation for social. Recorded with `screencapture -v -V 90 -R 0,114,1280,800 raw.mov` while the owner performed the moves, then cut with ffmpeg (`-ss 28.5 -to 69.5`, `scale=1280:800`, palettegen/paletteuse for the GIF). Re-record after any UI change; the take should start on an EMPTY tab. |
+| `demo.mp4` `demo.gif` | **Re-recorded 11 Sep** from a **Marketplace-installed** add-on (the 9 Sep take used the bound test script and carried a stale value in A3). 36 s 1280×800 H.264; 12 s 800px GIF of the insert + citation for social. Arc: Extensions → GreenCalculus → sidebar → search *uk grid electricity* → **Insert value** → `0.13096` → **Citation link** in B1 → click it → `verify.greencalculus.com` proof page → back to the sheet. Recipe below. |
+
+### Re-recording the demo (worked 11 Sep 2026)
+
+```bash
+# 1. Frame the window: Sheets viewport becomes exactly 1280x800 at absolute y=114
+osascript -e 'tell application "Brave Browser" to set bounds of window 1 to {0, 33, 1280, 914}'
+
+# 2. Record. -V is a hard stop in seconds; the owner performs the moves.
+screencapture -v -V 75 -R 0,114,1280,800 raw.mov
+
+# 3. Cut (pick in/out from a contact sheet: ffmpeg -i raw.mov -vf "fps=1/5,scale=420:-1,tile=5x3" -frames:v 1 contact.png)
+ffmpeg -ss 14 -to 50 -i raw.mov -vf "scale=1280:800:flags=lanczos,fps=30" -an \
+  -c:v libx264 -crf 20 -preset slow -pix_fmt yuv420p -movflags +faststart demo.mp4
+ffmpeg -ss 27 -to 39 -i raw.mov -vf "fps=12,scale=800:-1:flags=lanczos,palettegen=stats_mode=diff" pal.png
+ffmpeg -ss 27 -to 39 -i raw.mov -i pal.png -lavfi \
+  "fps=12,scale=800:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=3" demo.gif
+```
+
+Four things that cost a take:
+
+- **`screencapture -v` writes the whole movie on exit — the output file stays 0 bytes for the entire recording.** Checking that the file is growing reports a failure that is not happening. The macOS menu-bar recording indicator is the real signal, and it sits above y=114 so it never enters the frame.
+- **Dismiss Google's blue "Enhance your security" banner first.** It is inside the crop, and dismissing it shifts the page up ~28px, so re-check the framing with a still (`screencapture -x -R 0,114,1280,800 frame.png`) before recording, not after.
+- **`GC_CITE(A1)` fails when A1 was filled by Insert value.** That button writes `=GC_FACTOR("key")`, so the cell's VALUE is a number and the add-on correctly answers *"That cell holds a number (0.13096), not a factor key"*. A custom function can only read other cells' values, never their formulas, so this cannot be resolved automatically. Use the sidebar's **Citation link** button instead — it embeds the key, and its link target is the proof page, which merges two beats into one.
+- Start on a **new empty spreadsheet**, sidebar closed, cursor in A1.
 
 ### Screenshot shot list (1280×800, full bleed, square corners)
 
