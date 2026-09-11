@@ -27,6 +27,11 @@ print(f["factor"]["citation"]["proof_url"])     # a page your reader can check i
 
 `value` and `unit` are at the top level; the full sourced row is under
 `f["factor"]`, with `["source"]`, `["licence"]` and `["citation"]` inside it.
+
+The shape of `citation` is [specified and versioned](https://greencalculus.com/developers/citation/): `text`,
+`source_id`, `cell_ref`, `version` and `proof_url`. Print `text` verbatim —
+it credits the upstream publisher first, which is what makes it usable in a
+report someone else audits.
 **The same accessors work with or without a key** — with one, the response
 additionally carries `provenance`, `attribution`, `verification` and
 `proof_urls`.
