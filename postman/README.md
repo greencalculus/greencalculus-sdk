@@ -56,10 +56,33 @@ all, because that is the claim being tested. The three `Account` writes are
 skipped unless `GC_CHECK_MUTATIONS=1` — a check should not edit the account it
 is checking.
 
-## Publishing to the Postman Public API Network
+## Published
 
-Not done yet, and it needs a human: publishing requires a Postman account, and
-the workspace has to be created under one.
+**Live since 12 September 2026** —
+[postman.com/greencalculus/greencalculus](https://www.postman.com/greencalculus/greencalculus)
+· docs at
+[documenter.getpostman.com/view/58173296/2sBYAyt8wZ](https://documenter.getpostman.com/view/58173296/2sBYAyt8wZ)
+
+The domain is DNS-verified at the apex and Guided Auth is configured and
+verified against `api.greencalculus.com` (Bearer, with prerequisite copy that
+points a reader at the keyless folder first).
+
+**Two things to know before trusting it as an SEO surface.** The app pages are
+client-rendered — a logged-out fetch of the collection page returns 100 KB of
+JavaScript with only the collection *name* in it. And the published
+documentation serves `<meta name="robots" content="noindex,nofollow">`, with no
+SEO toggle anywhere in the publish flow, while two other public
+`documenter.getpostman.com` pages carry no robots meta at all. Support has been
+asked. Until that changes, this is a directory listing, not an indexable page.
+
+Fields that silently truncate at **140 characters**: the workspace summary and
+the team tagline. The first attempt published "…and data versio".
+
+## Republishing after a regeneration
+
+Re-run `generate.py`, then import the file again in Postman and choose
+**Replace** — the collection carries a stable `info._postman_id`, so a re-import
+updates it rather than dropping a second copy into the workspace.
 
 1. Sign in at [postman.com](https://www.postman.com) as `jeremiah@greencalculus.com`.
 2. Create a **public** workspace named `GreenCalculus`.
