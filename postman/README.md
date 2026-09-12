@@ -16,11 +16,16 @@ For the rest, set the `api_key` collection variable. Free, no card:
 | `base_url` | `https://api.greencalculus.com` | no trailing slash |
 | `api_key` | *(blank)* | leave blank to run the keyless requests only |
 
-## It is generated, not hand-written
+## It is generated, and kept that way
 
-The collection is built from the live OpenAPI document, so it cannot fall
-behind the API the way a hand-maintained one does. The version this replaced
-carried 6 of 26 operations and two years' worth of drift.
+The collection was built from the live OpenAPI document. The version it
+replaced carried 6 of 26 operations and two years' worth of drift.
+
+Generation is an event, though, not a property the file keeps: from the moment
+it was committed, this collection and the spec became two independently
+editable copies of the same 28 examples. `check-collection-parity.mjs` is what
+makes "generated" stay true — it re-reads the live spec and fails the build if
+the two documents have drifted apart.
 
 Auth per request is set from **measured** behaviour rather than what the spec
 declares — the two disagreed on six endpoints until
@@ -32,6 +37,7 @@ actually runs keyless is a request nobody pastes.
 ```
 node check-collection.mjs                              # the keyless ten
 GREENCALCULUS_API_KEY=gc_… node check-collection.mjs   # all 28
+node check-collection-parity.mjs                       # still the same as the spec?
 ```
 
 Every request is sent. Keyless ones go with **no** `Authorization` header at
@@ -52,5 +58,11 @@ the workspace has to be created under one.
 5. Grab the **Run in Postman** button markup and add it to the SDK README —
    `public-apis` has a "Call this API" column that wants exactly that link.
 
-Re-run `check-collection.mjs` before every publish. A collection is published
-to strangers who press Send before they read anything.
+Re-run **both** checks before every publish. A collection is published to
+strangers who press Send before they read anything.
+
+The two answer different questions and neither substitutes for the other:
+`check-collection.mjs` proves every request still *answers*;
+`check-collection-parity.mjs` proves the spec still *asks for that request*.
+A stale version pin passes the first and fails the second — which is exactly
+how `gc-api-gateway#118` shipped a documented example the API rejects.

@@ -74,6 +74,12 @@ jobs:
         working-directory: postman
         run: node check-collection.mjs
 
+      # Answering is not the same as being the request the spec asks for. A
+      # stale version pin passes the check above and fails this one.
+      - name: The collection still matches the spec it was generated from
+        working-directory: postman
+        run: node check-collection-parity.mjs
+
   keyless-contract:
     name: Keyless contract (live)
     runs-on: ubuntu-latest
