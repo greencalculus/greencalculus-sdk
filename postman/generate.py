@@ -34,6 +34,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -186,8 +187,16 @@ def main():
     ordered = [folders[t] for t in TAG_ORDER if t in folders and folders[t]["item"]]
     ordered += [f for t, f in folders.items() if t not in TAG_ORDER and f["item"]]
 
+    # A STABLE id, so re-importing REPLACES the collection instead of adding a
+    # second copy beside it. Postman matches on info._postman_id; without one it
+    # mints a fresh id per import, and a workspace being prepared for publication
+    # quietly accumulates "GreenCalculus API" two and three times over. Derived
+    # from the name, so it is the same on every machine and every regeneration.
+    postman_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "https://greencalculus.com/postman/collection"))
+
     collection = {
         "info": {
+            "_postman_id": postman_id,
             "name": "GreenCalculus API",
             "description": DESCRIPTION.read_text().strip(),
             "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
