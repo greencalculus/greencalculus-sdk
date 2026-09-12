@@ -2,12 +2,14 @@
 /**
  * The collection must still describe the API the spec describes.
  *
- * WHY. The collection was GENERATED from https://api.greencalculus.com/openapi.json
- * once, by hand, on 2026-09-12. Generation is not a property a file keeps — it is
- * an event that happened to it. From the moment it was committed, the collection
- * and the spec became two independently editable copies of the same 28 worked
- * examples, each with its own gate proving it answers 200, and nothing proving
- * they still agree with each other.
+ * WHY, GIVEN generate.py EXISTS. Generation is not a property a file keeps — it
+ * is an event that happened to it. `generate.py` rebuilds the collection from
+ * https://api.greencalculus.com/openapi.json, but nothing makes anyone run it:
+ * the spec moves on its own deploy cycle, and a request can be edited in Postman
+ * and exported straight back over the top. Between one run and the next, the
+ * collection and the spec are two independently editable copies of the same 28
+ * worked examples, each with its own gate proving it answers 200, and nothing
+ * proving they still agree. This is the gate that notices.
  *
  * That is the failure gc-api-gateway#118 had just finished fixing, one level up.
  * #118 found `cursor=2026.182` in the spec — a version older than the change
