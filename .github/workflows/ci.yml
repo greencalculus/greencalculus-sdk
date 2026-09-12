@@ -59,6 +59,27 @@ jobs:
         working-directory: sheets
         run: node --test test/core.test.mjs
 
+  postman:
+    name: Postman collection (live, keyless)
+    runs-on: ubuntu-latest
+    # The collection is published to strangers who press Send before they read
+    # anything. Its ten keyless requests are checked on every push; the keyed
+    # ones need a secret and are checked by hand before a publish.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Every keyless request in the collection answers
+        working-directory: postman
+        run: node check-collection.mjs
+
+      # Answering is not the same as being the request the spec asks for. A
+      # stale version pin passes the check above and fails this one.
+      - name: The collection still matches the spec it was generated from
+        working-directory: postman
+        run: node check-collection-parity.mjs
+
   keyless-contract:
     name: Keyless contract (live)
     runs-on: ubuntu-latest

@@ -1,0 +1,102 @@
+# Postman collection
+
+`greencalculus.postman_collection.json` — the whole API as a Postman v2.1
+collection: **28 requests across 5 folders, 10 of which need no API key.**
+
+Import it and the ten keyless requests run immediately. That is the point of
+the collection: the corpus is open to read, so browsing factors, the change
+feed, coverage, the absence register and a publisher's whole source feed all
+answer before you have signed up for anything.
+
+For the rest, set the `api_key` collection variable. Free, no card:
+<https://greencalculus.com/developers/>
+
+| Variable | Default | |
+|---|---|---|
+| `base_url` | `https://api.greencalculus.com` | no trailing slash |
+| `api_key` | *(blank)* | leave blank to run the keyless requests only |
+
+## It is generated, and kept that way
+
+```bash
+python3 generate.py              # rebuild from the live spec
+python3 generate.py --dry-run    # report what would change
+```
+
+The collection is built from the live OpenAPI document. The version it
+replaced carried 6 of 26 operations and two years' worth of drift.
+
+**The listing copy lives in `description.md`**, not in the generator — it is
+marketing, it changes more often than the code, and rewriting it should not need
+a Python review. Edit that file, re-run `generate.py`, re-import in Postman.
+Editing the description *in Postman instead* works right up until the next
+regeneration silently reverts it.
+
+Generation is an event, though, not a property the file keeps: from the moment
+it was committed, this collection and the spec became two independently
+editable copies of the same 28 examples. `check-collection-parity.mjs` is what
+makes "generated" stay true — it re-reads the live spec and fails the build if
+the two documents have drifted apart.
+
+Auth per request is set from **measured** behaviour rather than what the spec
+declares — the two disagreed on six endpoints until
+`gc-api-gateway#118` fixed the spec, and a request marked "needs a key" that
+actually runs keyless is a request nobody pastes.
+
+## Check it before publishing
+
+```
+node check-collection.mjs                              # the keyless ten
+GREENCALCULUS_API_KEY=gc_… node check-collection.mjs   # all 28
+node check-collection-parity.mjs                       # still the same as the spec?
+```
+
+Every request is sent. Keyless ones go with **no** `Authorization` header at
+all, because that is the claim being tested. The three `Account` writes are
+skipped unless `GC_CHECK_MUTATIONS=1` — a check should not edit the account it
+is checking.
+
+## Published
+
+**Live since 12 September 2026** —
+[postman.com/greencalculus/greencalculus](https://www.postman.com/greencalculus/greencalculus)
+· docs at
+[documenter.getpostman.com/view/58173296/2sBYAyt8wZ](https://documenter.getpostman.com/view/58173296/2sBYAyt8wZ)
+
+The domain is DNS-verified at the apex and Guided Auth is configured and
+verified against `api.greencalculus.com` (Bearer, with prerequisite copy that
+points a reader at the keyless folder first).
+
+**Two things to know before trusting it as an SEO surface.** The app pages are
+client-rendered — a logged-out fetch of the collection page returns 100 KB of
+JavaScript with only the collection *name* in it. And the published
+documentation serves `<meta name="robots" content="noindex,nofollow">`, with no
+SEO toggle anywhere in the publish flow, while two other public
+`documenter.getpostman.com` pages carry no robots meta at all. Support has been
+asked. Until that changes, this is a directory listing, not an indexable page.
+
+Fields that silently truncate at **140 characters**: the workspace summary and
+the team tagline. The first attempt published "…and data versio".
+
+## Republishing after a regeneration
+
+Re-run `generate.py`, then import the file again in Postman and choose
+**Replace** — the collection carries a stable `info._postman_id`, so a re-import
+updates it rather than dropping a second copy into the workspace.
+
+1. Sign in at [postman.com](https://www.postman.com) as `jeremiah@greencalculus.com`.
+2. Create a **public** workspace named `GreenCalculus`.
+3. **Import** → `greencalculus.postman_collection.json`.
+4. Workspace → **Publish**. Add the summary, the docs link
+   (<https://greencalculus.com/developers/docs/>) and the free-key link.
+5. Grab the **Run in Postman** button markup and add it to the SDK README —
+   `public-apis` has a "Call this API" column that wants exactly that link.
+
+Re-run **both** checks before every publish. A collection is published to
+strangers who press Send before they read anything.
+
+The two answer different questions and neither substitutes for the other:
+`check-collection.mjs` proves every request still *answers*;
+`check-collection-parity.mjs` proves the spec still *asks for that request*.
+A stale version pin passes the first and fails the second — which is exactly
+how `gc-api-gateway#118` shipped a documented example the API rejects.

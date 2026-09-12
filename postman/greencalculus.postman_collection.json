@@ -1,74 +1,990 @@
 {
   "info": {
+    "_postman_id": "6230755a-8812-51b9-8803-8b2303d66ea8",
     "name": "GreenCalculus API",
-    "description": "Sourced carbon emission factors + audit-traced calculations. Set the `api_key` collection variable (free key: https://greencalculus.com/developers).",
+    "description": "**Emission factors you can cite, and calculations an auditor can re-run.**\n\n16,000+ greenhouse-gas emission factors from 137 publishers — DEFRA, EPA, Ember, IPCC, ECCC, ÖKOBAUDAT. Every value comes back with the exact spreadsheet cell it was read from:\n\n```json\n\"value\": 0.13096,  \"unit\": \"kg CO2e per kWh\",\n\"source\":   { \"cell_ref\": \"'UK electricity'!E25\", \"retrieved\": \"2026-06-18\" },\n\"licence\":  { \"name\": \"Open Government Licence v3.0\", \"redistributable\": true },\n\"citation\": { \"proof_url\": \"https://verify.greencalculus.com/grid.gbr.electricity.location_based@2026.192\" }\n```\n\nThat proof link resolves the value **as it stood at that data version**. So a report re-run in eleven months lands on the same number instead of a quietly-revised one — and the reviewer who asks \"where did 0.13096 come from?\" gets a cell reference, not a shrug. Most carbon APIs hand you a figure and bury its origin.\n\n## Press Send right now\n\n**Ten of these 28 requests need no key and no signup.** Everything in **Discovery** is open: browse the corpus, read the change feed, check country coverage, and see which factors we deliberately *don't* hold and why. Open any of them and send it — nothing to configure.\n\n## For the other eighteen\n\nSet the `api_key` collection variable. Free, no card: **https://greencalculus.com/developers/**\n\nThat unlocks the calculation engines, which return the full working rather than a bare total — GHG Protocol activity, Scope 2 location + market, PCAF financed emissions, EN 15978 embodied carbon, GLEC freight, spend-based EEIO. Each response shows the factor used, its source, and the arithmetic.\n\n## For agents\n\nThe same corpus is an MCP server with twelve tools at `https://mcp.greencalculus.com`, on the official MCP registry as `com.greencalculus/api` — so a model can pull a sourced number mid-conversation instead of inventing one.\n\n---\n\nDocs: https://greencalculus.com/developers/docs/ · OpenAPI: https://api.greencalculus.com/openapi.json · SDKs for [Python and JavaScript](https://github.com/greencalculus/greencalculus-sdk) · [Google Sheets add-on](https://workspace.google.com/marketplace/app/greencalculus_emission_factors/172913449875)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
     "type": "bearer",
-    "bearer": [{ "key": "token", "value": "{{api_key}}", "type": "string" }]
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{api_key}}",
+        "type": "string"
+      }
+    ]
   },
-  "variable": [
-    { "key": "base_url", "value": "https://api.greencalculus.com" },
-    { "key": "api_key", "value": "gc_live_your_key_here" }
-  ],
   "item": [
     {
-      "name": "Factor lookup",
-      "request": {
-        "method": "GET",
-        "url": {
-          "raw": "{{base_url}}/v1/factors/grid.gbr.electricity.location_based",
-          "host": ["{{base_url}}"],
-          "path": ["v1", "factors", "grid.gbr.electricity.location_based"]
+      "name": "Factors",
+      "description": "Look up a factor by its canonical key, or read what it has been in every past data version.",
+      "item": [
+        {
+          "name": "Service health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "health"
+              ]
+            },
+            "description": "Service health",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
         },
-        "description": "A single sourced factor. Add ?as_of=<version> to pin a past data version."
-      }
+        {
+          "name": "Browse/search the corpus (open — no key, values included)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/factors?search=UK%20electricity&section=grid&key_prefix=grid.gbr&family=grid-electricity&limit=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "factors"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "UK electricity",
+                  "description": "Free text. Every whitespace-separated word must appear in the row name or canonical key (dots/underscores/hyphens read as separators, so a pasted canonical key finds its own row). Results are relevance-ranked."
+                },
+                {
+                  "key": "section",
+                  "value": "grid",
+                  "description": ""
+                },
+                {
+                  "key": "key_prefix",
+                  "value": "grid.gbr",
+                  "description": "Anchors at the START of the dotted key — \"electricity\" matches nothing; use search for words appearing anywhere."
+                },
+                {
+                  "key": "family",
+                  "value": "grid-electricity",
+                  "description": "Taxonomy family slug (hyphenated). An unknown value returns 200 with an empty result and the valid families listed in meta.warnings."
+                },
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "base64(canonical_key) from meta.next_cursor. Preferred over offset — stable across data-version bumps, and required for paging relevance-ordered search results.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Browse/search the corpus (open — no key, values included)",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve one factor by canonical key (value + full provenance)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/factors/grid.gbr.electricity.location_based?as_of=2026.175",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "factors",
+                "grid.gbr.electricity.location_based"
+              ],
+              "query": [
+                {
+                  "key": "as_of",
+                  "value": "2026.175",
+                  "description": "Serve this factor as it stood at an ARCHIVED data version. On a hit you get the archived row, served_version is the version you asked for, and version_pin reports matched: true, reproducible: true. Two misses, and they behave differently. (1) The version is NOT in the archive: 200 carrying the CURRENT row, with version_pin.matched: false naming as_of_requested and listing every archived version available — unlike POST /v1/calculate/*?as_of=, which 400s instead. So read version_pin before treating a response as pinned; do not infer it from the status code. (2) The version IS archived but holds no row for this key — it did not exist yet, or was withdrawn at or before it: 404 not_found, naming the key and the version, and saying whether the key is in the CURRENT corpus so a real absence is distinguishable from a mistyped key. GET /v1/factors/{key}/history lists every version that recorded it. Case (2) returned 200 with the current value in a browse envelope until 2026-09-10; it now refuses, because serving a current value under a past version label is the one answer this endpoint must never give."
+                }
+              ],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "grid.gbr.electricity.location_based",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Resolve one factor by canonical key (value + full provenance)"
+          },
+          "response": []
+        },
+        {
+          "name": "Version history — what this factor has been",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/factors/grid.gbr.electricity.location_based/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "factors",
+                "grid.gbr.electricity.location_based",
+                "history"
+              ],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "grid.gbr.electricity.location_based",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Every version the reproducibility archive holds for one key, with the value each version served and whether it was a change or a withdrawal. Derived from the same per-key archive index and the same read that answers ?as_of=, so it cannot disagree with the archive. Requires a key (any tier). History begins at the delta watershed; a short list means a stable factor, and the payload says so."
+          },
+          "response": []
+        }
+      ]
     },
     {
-      "name": "Resolve (plain language -> factor)",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "url": { "raw": "{{base_url}}/v1/calculate/resolve", "host": ["{{base_url}}"], "path": ["v1", "calculate", "resolve"] },
-        "body": { "mode": "raw", "raw": "{\n  \"description\": \"UK grid electricity\"\n}" }
-      }
+      "name": "Calculate",
+      "description": "The calculation engines. Each returns the full working — inputs, the factor used, its source and version — not a bare total.",
+      "item": [
+        {
+          "name": "Activity → emissions (activity × factor, with unit conversion + working + scope)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/calculate/ghg-activity?as_of=2026.175",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "calculate",
+                "ghg-activity"
+              ],
+              "query": [
+                {
+                  "key": "as_of",
+                  "value": "2026.175",
+                  "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss."
+                }
+              ]
+            },
+            "description": "Activity → emissions (activity × factor, with unit conversion + working + scope)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activity\": {\n    \"value\": 5,\n    \"unit\": \"MWh\"\n  },\n  \"factor_key\": \"grid.gbr.electricity.location_based\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Whole-life embodied carbon (EN 15978 modular, boundary-aware)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/calculate/embodied",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "calculate",
+                "embodied"
+              ]
+            },
+            "description": "Version pinning is NOT available on this engine: the pin resolves keys named `*factor_key`, and this endpoint is addressed by `material_key` (and its per-module rows). Sending ?as_of= here is a 400 rather than a silent fall back to current data — a calculation that carries a receipt has to be the version it claims.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"materials\": [\n    {\n      \"id\": \"slab\",\n      \"material_key\": \"materials.concrete.ready_mix.c8_10\",\n      \"quantity\": {\n        \"value\": 12,\n        \"unit\": \"m3\"\n      },\n      \"boundary\": \"A1-A3\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PCAF Part A financed emissions (attribution + audit trail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/calculate/pcaf",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "calculate",
+                "pcaf"
+              ]
+            },
+            "description": "Version pinning is NOT available on this engine: the pin resolves keys named `*factor_key`, and this endpoint is addressed by `sector_key`, or by caller-supplied emissions with no factor at all. Sending ?as_of= here is a 400 rather than a silent fall back to current data — a calculation that carries a receipt has to be the version it claims.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset_class\": \"listed_equity\",\n  \"holdings\": [\n    {\n      \"id\": \"acme-plc\",\n      \"outstanding_amount\": 5000000,\n      \"denominator\": {\n        \"type\": \"evic\",\n        \"value\": 120000000\n      },\n      \"company_emissions\": {\n        \"value\": 42000,\n        \"unit\": \"tCO2e\"\n      },\n      \"data_quality_score\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Scope 2 electricity — location + market (dual reporting)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/calculate/electricity?as_of=2026.175",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "calculate",
+                "electricity"
+              ],
+              "query": [
+                {
+                  "key": "as_of",
+                  "value": "2026.175",
+                  "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss."
+                }
+              ]
+            },
+            "description": "Scope 2 electricity — location + market (dual reporting)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"consumption\": {\n    \"value\": 10000,\n    \"unit\": \"kWh\"\n  },\n  \"location_factor_key\": \"grid.gbr.electricity.location_based\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Freight (GLEC) — mass × distance × factor (tonne-km)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/calculate/freight?as_of=2026.175",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "calculate",
+                "freight"
+              ],
+              "query": [
+                {
+                  "key": "as_of",
+                  "value": "2026.175",
+                  "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss."
+                }
+              ]
+            },
+            "description": "Freight (GLEC) — mass × distance × factor (tonne-km)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mass\": {\n    \"value\": 12,\n    \"unit\": \"t\"\n  },\n  \"distance\": {\n    \"value\": 300,\n    \"unit\": \"km\"\n  },\n  \"factor_key\": \"freight.road_hgv.tonne_km\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Spend-based EEIO — spend × intensity (currency-matched, no FX)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/calculate/spend-based?as_of=2026.175",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "calculate",
+                "spend-based"
+              ],
+              "query": [
+                {
+                  "key": "as_of",
+                  "value": "2026.175",
+                  "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss."
+                }
+              ]
+            },
+            "description": "Spend-based EEIO — spend × intensity (currency-matched, no FX)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"spend\": {\n    \"value\": 50000,\n    \"currency\": \"USD\"\n  },\n  \"factor_key\": \"spend_based.us.naics6.541511.custom_computer_programming_services\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Business travel — distance × passengers × factor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/calculate/business-travel?as_of=2026.175",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "calculate",
+                "business-travel"
+              ],
+              "query": [
+                {
+                  "key": "as_of",
+                  "value": "2026.175",
+                  "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss."
+                }
+              ]
+            },
+            "description": "Business travel — distance × passengers × factor",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"distance\": {\n    \"value\": 800,\n    \"unit\": \"km\"\n  },\n  \"passengers\": 2,\n  \"factor_key\": \"business_travel.air.short_haul.average.with_rf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Batch — up to 100 mixed-methodology calculations in one call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/calculate/batch?as_of=2026.175",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "calculate",
+                "batch"
+              ],
+              "query": [
+                {
+                  "key": "as_of",
+                  "value": "2026.175",
+                  "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss."
+                }
+              ]
+            },
+            "description": "Batch — up to 100 mixed-methodology calculations in one call",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"methodology\": \"ghg-activity\",\n      \"input\": {\n        \"activity\": {\n          \"value\": 5,\n          \"unit\": \"MWh\"\n        },\n        \"factor_key\": \"grid.gbr.electricity.location_based\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve — plain-text description → ranked factor keys + confidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/calculate/resolve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "calculate",
+                "resolve"
+              ]
+            },
+            "description": "Resolve — plain-text description → ranked factor keys + confidence",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"diesel delivery van\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
     },
     {
-      "name": "Calculate — GHG activity",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "url": { "raw": "{{base_url}}/v1/calculate/ghg-activity", "host": ["{{base_url}}"], "path": ["v1", "calculate", "ghg-activity"] },
-        "body": { "mode": "raw", "raw": "{\n  \"activity\": { \"value\": 1000, \"unit\": \"kWh\" },\n  \"factor_key\": \"grid.gbr.electricity.location_based\"\n}" }
-      }
+      "name": "Bulk",
+      "description": "Up to 100 mixed-methodology calculations in one request.",
+      "item": [
+        {
+          "name": "Full consolidated factor feed (Business plan and above)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/corpus",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "corpus"
+              ]
+            },
+            "description": "Full consolidated factor feed (Business plan and above)"
+          },
+          "response": []
+        }
+      ]
     },
     {
-      "name": "Calculate — PCAF financed emissions",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "url": { "raw": "{{base_url}}/v1/calculate/pcaf", "host": ["{{base_url}}"], "path": ["v1", "calculate", "pcaf"] },
-        "body": { "mode": "raw", "raw": "{\n  \"asset_class\": \"listed_equity_corporate_bonds\",\n  \"holdings\": [{\n    \"outstanding_amount\": 1000000,\n    \"denominator\": { \"type\": \"evic\", \"value\": 2500000000000 },\n    \"company_emissions\": { \"value\": 20000000 },\n    \"data_quality_score\": 2\n  }]\n}" }
-      }
+      "name": "Discovery",
+      "description": "Browse the corpus, see what we hold and what we deliberately do not. Most of this folder needs no key: it runs the moment you import it.",
+      "item": [
+        {
+          "name": "Status — current health and measured uptime",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "status"
+              ]
+            },
+            "description": "Open (no key). Current operational state, uptime over 24h/7d/30d, and a log of healthy/degraded transitions. Measured by a probe running every ~5 minutes against the edge factor store, the WordPress origin and a real calculation round-trip. The probe runs INSIDE this Worker and therefore cannot observe the Worker being entirely down — the response says so rather than implying total coverage.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change feed — what each data release changed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/changes?limit=20&cursor=2026.183",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "changes"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": ""
+                },
+                {
+                  "key": "cursor",
+                  "value": "2026.183",
+                  "description": "A version from a previous page's next_cursor; resumes after it. Must be at or after meta.record_begins — an earlier version is archived and pinnable but was never summarised, so it cannot be resumed from."
+                }
+              ]
+            },
+            "description": "Open (no key). Data releases newest first, each with added/changed/withdrawn counts and a link to its per-release record. Derived at publish time from the same delta the reproducibility archive stores, so this feed cannot disagree with ?as_of= about a release. Records begin at the delta watershed (meta.record_begins); earlier versions remain archived and pinnable but are not summarised.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "One release — every row it added, changed or withdrew",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/changes/2026.183",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "changes",
+                "2026.183"
+              ],
+              "variable": [
+                {
+                  "key": "version",
+                  "value": "2026.183",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Open (no key). The full entry list for one data release. Each entry is checkable at verify.greencalculus.com/{key}@{version} without an account. A version older than the record (or never published) is a 404 that says which releases are recorded.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "This document",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/openapi.json",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "openapi.json"
+              ]
+            },
+            "description": "Open (no key). Also served at /openapi.json. Point a generator, Postman or your editor at it.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "The sourcing queue — factor gaps the telemetry actually recorded",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/roadmap",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "roadmap"
+              ]
+            },
+            "description": "Open (no key). Rebuilt daily from 90 days of misses, never hand-edited. A key appears only after crossing meta.floor requests, which is what separates demand from one-off probes; naming misses the API recovered with suggestions are excluded as discovery bugs rather than data gaps. An empty list is a statement about the record, not about demand, and meta.note says which.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Coverage — which countries we hold data for, and how much",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/coverage?country=gbr%2Cusa&family=wtt&min_score=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "coverage"
+              ],
+              "query": [
+                {
+                  "key": "country",
+                  "value": "gbr,usa",
+                  "description": "One or more ISO-3166 alpha-3 codes, comma-separated."
+                },
+                {
+                  "key": "family",
+                  "value": "wtt",
+                  "description": "Only countries holding data in this family."
+                },
+                {
+                  "key": "min_score",
+                  "value": "10",
+                  "description": "Only countries covering at least this many of the 13 families."
+                }
+              ]
+            },
+            "description": "Open (no key). Per country: how many of 13 inventory families we hold, the row count in each, and a band (complete / partial / minimal). Answer \"do you cover my country?\" before integrating. Derived from the live corpus at request time, so it cannot drift from the data. Measures PRESENCE, not sufficiency — a country showing fuel:7 has seven fuel rows, which may not answer a given question; the response repeats this in a caveat field. Returns counts only, never factor values.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Absence — why a factor is NOT in the corpus",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/absence?country=can&family=water&classification=structural",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "absence"
+              ],
+              "query": [
+                {
+                  "key": "country",
+                  "value": "can",
+                  "description": "ISO-3166 alpha-3 code."
+                },
+                {
+                  "key": "family",
+                  "value": "water",
+                  "description": "Inventory family, as used by /v1/coverage."
+                },
+                {
+                  "key": "classification",
+                  "value": "structural",
+                  "description": "structural | not_yet_sourced | refused | held_not_counted | coupled."
+                }
+              ]
+            },
+            "description": "Open (no key). The reasoned counterpart to /v1/coverage: where that reports a zero, this reports why. Each record carries the subject, the publisher we checked, the route we tried, a confidence and a review date. Five classifications: \"structural\" (no publisher issues this anywhere — stop retrying), \"not_yet_sourced\" (a publisher exists and is named; our backlog), \"refused\" (we found it and declined; the reason is stated), \"held_not_counted\" (we DO hold it — see we_hold for the key — and the coverage metric cannot see it), and \"coupled\" (zero only because another family is zero). These are authored judgements about what the world publishes, not values derived from our corpus, so each carries a review date and reports stale:true once past it.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Source feed — one publisher's dataset, whole",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sources/defra_2026",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sources",
+                "defra_2026"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "defra_2026",
+                  "description": "Source id, case-insensitive. Currently DEFRA_2026, DEFRA_2025, EMBER_YEARLY_ELECTRICITY_2025."
+                }
+              ]
+            },
+            "description": "Open (no key). Every row we hold from one public-domain publisher, with that publisher's licence, issuing body and retrieval date, and the exact source cell behind each value. Feeds exist for a NAMED SET of sources, not for every source id in the corpus — a source we have not cleared for republication has no feed, and asks for one are refused rather than quietly answered from somewhere else. The id is case-insensitive. Everything else in the corpus is readable through GET /v1/factors, which carries the same values, provenance and licence per row.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
     },
     {
-      "name": "Calculate — Embodied (EN 15978)",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "url": { "raw": "{{base_url}}/v1/calculate/embodied", "host": ["{{base_url}}"], "path": ["v1", "calculate", "embodied"] },
-        "body": { "mode": "raw", "raw": "{\n  \"materials\": [{\n    \"material_key\": \"materials.concrete.ready_mix.c8_10\",\n    \"quantity\": { \"value\": 50, \"unit\": \"m3\" },\n    \"boundary\": \"A1-C\"\n  }]\n}" }
-      }
+      "name": "Account",
+      "description": "Factor Watch — the keys this account is alerted on when a publisher revises them.",
+      "item": [
+        {
+          "name": "The factor keys this account is alerted on",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/account/watch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "account",
+                "watch"
+              ]
+            },
+            "description": "Bearer key or signed-in session."
+          },
+          "response": []
+        },
+        {
+          "name": "What changed for your watched keys between two dates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/account/watch/diff?from=2026-01-01&to=2026-12-31",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "account",
+                "watch",
+                "diff"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01",
+                  "description": ""
+                },
+                {
+                  "key": "to",
+                  "value": "2026-12-31",
+                  "description": "Defaults to today."
+                }
+              ]
+            },
+            "description": "The reporting-period question, answered directly: per key, the value at each boundary, whether it moved, the versions that touched it, and a proof link per side — the evidence a restatement decision needs. A `from` older than the change record clamps to the archive watershed and the response says so."
+          },
+          "response": []
+        },
+        {
+          "name": "Read the summary cadence",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/account/watch/digest",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "account",
+                "watch",
+                "digest"
+              ]
+            },
+            "description": "Read the summary cadence"
+          },
+          "response": []
+        },
+        {
+          "name": "Watch a factor key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/account/watch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "account",
+                "watch"
+              ]
+            },
+            "description": "A release that touches the key emails old to new with the versioned verify link. A key that is not in the corpus is REFUSED with 422 rather than accepted as an alert that could never fire.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"grid.gbr.electricity.location_based\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Stop watching a factor key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/account/watch/remove",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "account",
+                "watch",
+                "remove"
+              ]
+            },
+            "description": "POST rather than DELETE: credentialed CORS on this API allows GET and POST only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"grid.gbr.electricity.location_based\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set the summary cadence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/account/watch/digest",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "account",
+                "watch",
+                "digest"
+              ]
+            },
+            "description": "Off by default. Each edition covers exactly the period since the last one — anchored to itself, so it fits any financial year with no configuration. Quiet periods still send: \"your saved figures stand\" is the answer a reporting team needs.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cadence\": \"monthly\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.greencalculus.com",
+      "description": "The API host. No trailing slash."
     },
     {
-      "name": "Calculate — Freight",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "url": { "raw": "{{base_url}}/v1/calculate/freight", "host": ["{{base_url}}"], "path": ["v1", "calculate", "freight"] },
-        "body": { "mode": "raw", "raw": "{\n  \"mass\": { \"value\": 1, \"unit\": \"tonne\" },\n  \"distance\": { \"value\": 100, \"unit\": \"km\" },\n  \"factor_key\": \"freight.rail.tonne_km\"\n}" }
-      }
+      "key": "api_key",
+      "value": "",
+      "description": "Your key, e.g. gc_live_… — free at https://greencalculus.com/developers/ . Leave blank to run the keyless requests only."
     }
   ]
 }
