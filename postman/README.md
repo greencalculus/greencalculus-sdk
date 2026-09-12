@@ -18,8 +18,19 @@ For the rest, set the `api_key` collection variable. Free, no card:
 
 ## It is generated, and kept that way
 
-The collection was built from the live OpenAPI document. The version it
+```bash
+python3 generate.py              # rebuild from the live spec
+python3 generate.py --dry-run    # report what would change
+```
+
+The collection is built from the live OpenAPI document. The version it
 replaced carried 6 of 26 operations and two years' worth of drift.
+
+**The listing copy lives in `description.md`**, not in the generator — it is
+marketing, it changes more often than the code, and rewriting it should not need
+a Python review. Edit that file, re-run `generate.py`, re-import in Postman.
+Editing the description *in Postman instead* works right up until the next
+regeneration silently reverts it.
 
 Generation is an event, though, not a property the file keeps: from the moment
 it was committed, this collection and the spec became two independently
