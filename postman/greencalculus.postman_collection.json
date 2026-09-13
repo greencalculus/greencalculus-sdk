@@ -781,7 +781,7 @@
                 }
               ]
             },
-            "description": "Open (no key). Every row we hold from one public-domain publisher, with that publisher's licence, issuing body and retrieval date, and the exact source cell behind each value. Feeds exist for a NAMED SET of sources, not for every source id in the corpus — a source we have not cleared for republication has no feed, and asks for one are refused rather than quietly answered from somewhere else. The id is case-insensitive. Everything else in the corpus is readable through GET /v1/factors, which carries the same values, provenance and licence per row.",
+            "description": "Open (no key). Every row we hold from one public-domain publisher, with that publisher's licence, issuing body and retrieval date, and the exact source reference behind each value. Feeds exist for a NAMED SET of sources, not for every source id in the corpus — a source we have not cleared for republication has no feed, and asks for one are refused rather than quietly answered from somewhere else. The id is case-insensitive. Everything else in the corpus is readable through GET /v1/factors, which carries the same values, provenance and licence per row.",
             "auth": {
               "type": "noauth"
             }
