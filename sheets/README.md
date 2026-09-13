@@ -194,6 +194,23 @@ Verified on the day of approval: the listing served script **version 3**, and th
 consent screen shows **Verified** on every Trust-and-Safety item — so an installer sees the
 three scopes and no unverified-app warning, and the 100-user cap is gone.
 
+**PENDING listing edit — batch with the next one, do not trigger a review for
+it alone.** The Marketplace **short description** still reads *"Sourced carbon
+emission factors in a cell, with the publisher's exact source cell, data version
+and a citation. No signup needed."* — the universal form of a claim that
+describes 5.8% of the corpus (see the 2026-09-13 sweep). It lives in the console,
+not this repo. Suggested replacement, 138 of the 200 characters allowed:
+
+> Sourced carbon emission factors in a cell, with the publisher's exact source
+> reference, data version and a citation. No signup needed.
+
+Short description is one of the four fields that **forces a re-review**
+(Language / Application name / Short / Detailed), which is why it waits for
+company. The **detailed** description's *"the exact cell in their workbook"*
+is CORRECT and must not be swept: it describes what
+`=GC_CITE("grid.gbr.electricity.location_based")` returns, and that row is DEFRA,
+where a cell genuinely is the reference.
+
 **Version state, 2026-09-13.** Pushed and versioned as **v5** — the "source cell" →
 "source reference" wording correction across the sidebar, the six function help strings and
 the citation docs (measured: 5.8% of the corpus cites a spreadsheet cell, the rest cite a

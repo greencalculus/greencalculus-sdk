@@ -75,6 +75,23 @@ SEO toggle anywhere in the publish flow, while two other public
 `documenter.getpostman.com` pages carry no robots meta at all. Support has been
 asked. Until that changes, this is a directory listing, not an indexable page.
 
+**The documenter page is HEAD-ONLY server-rendered, so you cannot verify a
+collection change by fetching it.** Measured 2026-09-13: the `<head>` carries
+real title/og/twitter/description metadata, and the `<body>` yields **zero**
+characters of visible text — no folder names, no request names, no collection
+description. A `curl` of that URL tells you what the *documentation settings*
+say and nothing at all about what the *collection* contains. Verify a re-import
+in the Postman app, or against the JSON in this directory.
+
+**PENDING — batch with the next listing change.** The published documentation's
+**title** still reads *"GreenCalculus API — emission factors with their source
+cell"*, and it is the source of `<title>`, `og:title` and `twitter:title` alike.
+It is a Publish-documentation setting, not anything in this repo, so the
+2026-09-13 wording sweep could not reach it. The collection copy and every
+per-request description are already correct. Suggested: *"GreenCalculus API —
+emission factors with their source reference"*. Low urgency: the page is
+`noindex`, so this is a browser tab and a social card.
+
 Fields that silently truncate at **140 characters**: the workspace summary and
 the team tagline. The first attempt published "…and data versio".
 
