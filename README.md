@@ -8,7 +8,7 @@
 [![smithery](https://smithery.ai/badge/greencalculus/api)](https://smithery.ai/servers/greencalculus/api)
 [![Google Workspace Marketplace](https://img.shields.io/badge/Google%20Sheets-add--on-34A853)](https://workspace.google.com/marketplace/app/greencalculus_emission_factors/172913449875)
 
-Official client libraries for the **[GreenCalculus API](https://greencalculus.com/developers?ref=github-sdk)** — sourced greenhouse-gas emission factors and audit-traced calculations. Every value comes back with **the exact cell it came from and the data version it was read at**, so you return citable numbers instead of guesses.
+Official client libraries for the **[GreenCalculus API](https://greencalculus.com/developers?ref=github-sdk)** — sourced greenhouse-gas emission factors and audit-traced calculations. Every value comes back with **the exact place in the source it came from and the data version it was read at**, so you return citable numbers instead of guesses.
 
 Not writing code? The same corpus is a spreadsheet formula: the **[Google Sheets add-on](https://workspace.google.com/marketplace/app/greencalculus_emission_factors/172913449875)** has been listed and Google-verified since 11 September 2026 — see [`sheets/`](./sheets).
 
@@ -68,10 +68,10 @@ print(r["emissions"]["value"], r["source"]["id"])
 
 ## What you get
 
-- **16,000+ sourced factors** across grid, fuels, freight, refrigerants, AFOLU, CBAM, construction and spend-based EEIO. Every value returns its source cell, licence and uncertainty.
+- **16,000+ sourced factors** across grid, fuels, freight, refrigerants, AFOLU, CBAM, construction and spend-based EEIO. Every value returns its source reference, licence and uncertainty.
 - **Seven calculation engines** — GHG Protocol activity, PCAF financed emissions, embodied EN 15978, electricity, freight, spend-based, business travel. The full working, never just a total.
 - **Reproducible** — a deterministic receipt hash on every result, and `as_of=` pins any factor to a past data version so a figure re-runs identically in an audit.
-- **Checkable by the reader** — every factor has a permanent verification page showing the publisher, the document, the exact cell and whether it may be republished.
+- **Checkable by the reader** — every factor has a permanent verification page showing the publisher, the document, the exact place within it and whether it may be republished.
 - **Agent-native** — the same data over MCP at `mcp.greencalculus.com`.
 
 ## Use it from an AI agent (MCP)

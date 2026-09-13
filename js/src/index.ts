@@ -2,7 +2,7 @@
  * GreenCalculus — the carbon-accounting API.
  *
  * Sourced greenhouse-gas emission factors and audit-traced calculations, every
- * value traceable to its source cell and data version. Zero dependencies (uses
+ * value traceable to its source reference and data version. Zero dependencies (uses
  * the platform `fetch`; Node 18+ or any browser).
  *
  *   import { GreenCalculus } from "greencalculus";
@@ -146,7 +146,7 @@ export class GreenCalculus {
 
   /**
    * Browse the corpus — keyless, edge-cached. Full rows including the value,
-   * source cell and licence. Params: key_prefix, section, family, search, limit, offset, cursor.
+   * source reference and licence. Params: key_prefix, section, family, search, limit, offset, cursor.
    */
   browse(params: Record<string, unknown> = {}): Promise<Json> {
     return this.request("GET", "/v1/factors", { params });

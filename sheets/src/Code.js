@@ -278,7 +278,7 @@ function gcHelp() {
     + '<b>=GC_FACTOR(key, [field], [as_of])</b><br>Fields: ' + Object.keys(GC_FIELDS).join(', ') + '<br><br>'
     + '<b>=GC_FACTOR_ROW(key)</b> · <b>=GC_CITE(key, ["short"])</b> · <b>=GC_EMISSIONS(key, qty)</b> · <b>=GC_SEARCH(text)</b> · <b>=GC_VERSION()</b><br>'
     + 'Linked citation: <code>=HYPERLINK(GC_FACTOR(key,"proof"), GC_CITE(key,"short"))</code><br><br>'
-    + 'Every value comes with the publisher\'s exact source cell, the data version and a citation, and stays current when the publisher updates.<br><br>'
+    + 'Every value comes with the publisher\'s exact source reference, the data version and a citation, and stays current when the publisher updates.<br><br>'
     + 'Keys: <a href="' + GC_FACTORS_URL + '" target="_blank">greencalculus.com/factors</a> · '
     + 'Docs: <a href="' + GC_DOCS_URL + '" target="_blank">developers/docs</a> · '
     + '<a href="' + GC_SIGNUP_URL + '" target="_blank">Get a free API key</a> (version pinning)<br><br>'
@@ -436,7 +436,7 @@ function GC_FACTOR(key, field, as_of) {
 }
 
 /**
- * One factor as a row: value, unit, source id, source cell, data version, citation.
+ * One factor as a row: value, unit, source id, source reference, data version, citation.
  *
  * @param {string} key Factor key.
  * @param {boolean} [headers] TRUE to include a header row above the values.
@@ -456,9 +456,9 @@ function GC_FACTOR_ROW(key, headers) {
 }
 
 /**
- * A ready-to-paste citation for a factor: factor name, publisher, source cell,
+ * A ready-to-paste citation for a factor: factor name, publisher, source reference,
  * retrieval date, data version and a public proof link. Pass "short" for a
- * cell-sized form (source id, source cell, data version); wrap in HYPERLINK
+ * cell-sized form (source id, source reference, data version); wrap in HYPERLINK
  * with GC_FACTOR(key,"proof") to make it a link.
  *
  * @param {string|Array<Array<string>>} key Factor key or a range of keys.

@@ -17,7 +17,7 @@ names often differ from what you'd guess.
 [Report a wrong value](https://github.com/greencalculus/greencalculus-sdk/issues/new?template=wrong-value.yml).
 A carbon figure that is quietly wrong is worse than one that is missing. Every
 factor carries a verification link (`citation.proof_url`) showing the publisher,
-the document and the exact cell — if that cell doesn't say what we say it says,
+the document and the exact place within it — if that place doesn't say what we say it says,
 we want to know, and we'd rather hear it in public.
 
 ## Code
