@@ -1,6 +1,6 @@
 **Emission factors you can cite, and calculations an auditor can re-run.**
 
-16,000+ greenhouse-gas emission factors from 137 publishers — DEFRA, EPA, Ember, IPCC, ECCC, ÖKOBAUDAT. Every value comes back with the exact spreadsheet cell it was read from:
+16,000+ greenhouse-gas emission factors from 137 publishers — DEFRA, EPA, Ember, IPCC, ECCC, ÖKOBAUDAT. Every value comes back with the exact place in the source it was read from — here, a spreadsheet cell:
 
 ```json
 "value": 0.13096,  "unit": "kg CO2e per kWh",

@@ -3,7 +3,7 @@
  *
  * CO2.js bundles one unversioned average per country (Ember). This helper
  * fetches the same quantity from GreenCalculus — with the publisher, the
- * exact source cell, the data version and a public proof URL — and shapes it
+ * exact source reference, the data version and a public proof URL — and shapes it
  * as the `gridIntensity` option CO2.js already accepts, so a web-carbon
  * estimate can carry an audit trail. No dependency on @tgwf/co2; pass the
  * result into its `perVisitTrace` / `perByteTrace` options yourself.

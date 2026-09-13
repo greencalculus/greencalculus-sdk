@@ -147,7 +147,7 @@ test('gcExampleBlock: formulas point at the key and amount cells; citation cell 
   assert.deepEqual(second.values, ['fuels.gbr.diesel_average_biofuel_blend.litre', 500, 'litres']);
   assert.equal(core.gcCitationLinkFormula('"grid.x"'), '=HYPERLINK(GC_FACTOR("grid.x","proof"),GC_CITE("grid.x","short"))');
 });
-test('short citation: source id, source cell, data version — from fields, never prose', () => {
+test('short citation: source id, source reference, data version — from fields, never prose', () => {
   const r = core.gcExtract(browse, KEY);
   assert.equal(core.gcCitationShort(r), "DEFRA_2026, 'UK electricity'!E25, v2026.186");
   assert.equal(core.gcField(r, 'short'), core.gcCitationShort(r));

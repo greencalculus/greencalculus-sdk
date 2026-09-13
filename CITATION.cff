@@ -5,7 +5,7 @@ title: "GreenCalculus SDKs"
 abstract: >
   Official Python and JavaScript/TypeScript clients for the GreenCalculus carbon
   API, plus a Google Sheets add-in and a Postman collection. Every emission factor
-  returned carries the exact cell it was read from and the data version it was read
+  returned carries the exact place in the source it was read from and the data version it was read
   at, and every calculation returns its full working with a deterministic receipt
   hash, so a published figure can be reproduced and checked rather than trusted.
   The corpus reads without an API key.

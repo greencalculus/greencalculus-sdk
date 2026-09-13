@@ -70,7 +70,7 @@ var GC_FIELDS = {
   name: 'human-readable factor name',
   source: 'source id, e.g. DEFRA_2026',
   publisher: 'publishing organisation',
-  cell: 'exact source cell reference in the publisher’s workbook',
+  cell: 'where in the publisher’s own document the value was read — a workbook cell, a table row or an annex clause',
   retrieved: 'date the row was retrieved from the publisher',
   licence: 'licence name of the source',
   version: 'GreenCalculus data version that served the value',
@@ -78,7 +78,7 @@ var GC_FIELDS = {
   basis: 'boundary / basis statement for the value',
   scope: 'GHG Protocol scope the factor belongs to',
   citation: 'a ready-to-paste citation line',
-  citation_short: 'a short citation for a cell: source id, source cell, data version',
+  citation_short: 'a short citation for a cell: source id, source reference, data version',
   proof: 'public proof URL pinned to the data version',
 };
 
@@ -280,7 +280,7 @@ function gcCitation(rec) {
 }
 
 /**
- * The short citation for a cell: source id, source cell, data version —
+ * The short citation for a cell: source id, source reference, data version —
  * `DEFRA_2026, 'UK electricity'!E25, v2026.186`. Composed from the fields the
  * API's citation object carries, so it cannot drift from the full line.
  */

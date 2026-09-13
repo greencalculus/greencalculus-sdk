@@ -1,6 +1,6 @@
 # greencalculus
 
-The official Python client for the [GreenCalculus API](https://greencalculus.com/developers?ref=pypi) — sourced greenhouse-gas emission factors and audit-traced calculations. Every value comes back with the exact cell it came from and the data version it was read at, so you hand back citable numbers, not guesses.
+The official Python client for the [GreenCalculus API](https://greencalculus.com/developers?ref=pypi) — sourced greenhouse-gas emission factors and audit-traced calculations. Every value comes back with the exact place in the source it came from and the data version it was read at, so you hand back citable numbers, not guesses.
 
 Zero third-party dependencies (standard library only).
 

@@ -1,7 +1,7 @@
 """GreenCalculus — the carbon-accounting API.
 
 Sourced greenhouse-gas emission factors and audit-traced calculations, every
-value traceable to its source cell and data version.
+value traceable to its source reference and data version.
 
     from greencalculus import GreenCalculus
 
@@ -166,7 +166,7 @@ class GreenCalculus:
 
     def browse(self, **params: Any) -> Dict[str, Any]:
         """Browse the corpus — keyless, edge-cached. Full rows including the
-        value, source cell and licence.
+        value, source reference and licence.
 
         Params: ``key_prefix``, ``section``, ``family``, ``search``, ``limit``,
         ``offset``, ``cursor``.

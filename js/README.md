@@ -1,6 +1,6 @@
 # greencalculus
 
-The official JavaScript / TypeScript client for the [GreenCalculus API](https://greencalculus.com/developers?ref=npm) — sourced greenhouse-gas emission factors and audit-traced calculations. Every value comes back with the exact cell it came from and the data version it was read at.
+The official JavaScript / TypeScript client for the [GreenCalculus API](https://greencalculus.com/developers?ref=npm) — sourced greenhouse-gas emission factors and audit-traced calculations. Every value comes back with the exact place in the source it came from and the data version it was read at.
 
 Zero dependencies. Uses the platform `fetch` (Node 18+ or any browser). Ships with TypeScript types.
 

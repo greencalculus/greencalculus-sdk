@@ -1,6 +1,6 @@
 # GreenCalculus for Google Sheets
 
-`=GC_FACTOR("grid.gbr.electricity.location_based")` → a sourced emission factor in a cell, with the publisher's exact source cell, the data version and a citation one column over. The spreadsheet is where carbon accounting actually happens; this puts cited factors inside it.
+`=GC_FACTOR("grid.gbr.electricity.location_based")` → a sourced emission factor in a cell, with the publisher's exact source reference, the data version and a citation one column over. The spreadsheet is where carbon accounting actually happens; this puts cited factors inside it.
 
 Keyless by default — the GreenCalculus corpus is open to read. An API key (free) adds `as_of` version pinning.
 
@@ -21,7 +21,7 @@ Find keys at [greencalculus.com/factors](https://greencalculus.com/factors/) or 
 
 ## First run
 
-Installing from the Marketplace opens the sidebar (`onInstall` runs in `AuthMode.FULL`, so it may). Until this user has tried it once, the sidebar leads with a one-line "why" (source cell, data version, citation, stays current) and one button, **Build me a starter sheet**: at the selected cell it writes a header row and two rows — UK grid electricity for 1,000 kWh and UK diesel for 500 litres — each with `=GC_EMISSIONS(key, amount)` and a linked short citation `=HYPERLINK(GC_FACTOR(key,"proof"), GC_CITE(key,"short"))`. Cited numbers in one click, no key needed. **Skip** hides the panel. The same block is under *Extensions → GreenCalculus → Build me a starter sheet*. Seen-state is per user (`GC_WELCOMED` in user properties), not per workbook.
+Installing from the Marketplace opens the sidebar (`onInstall` runs in `AuthMode.FULL`, so it may). Until this user has tried it once, the sidebar leads with a one-line "why" (source reference, data version, citation, stays current) and one button, **Build me a starter sheet**: at the selected cell it writes a header row and two rows — UK grid electricity for 1,000 kWh and UK diesel for 500 litres — each with `=GC_EMISSIONS(key, amount)` and a linked short citation `=HYPERLINK(GC_FACTOR(key,"proof"), GC_CITE(key,"short"))`. Cited numbers in one click, no key needed. **Skip** hides the panel. The same block is under *Extensions → GreenCalculus → Build me a starter sheet*. Seen-state is per user (`GC_WELCOMED` in user properties), not per workbook.
 
 ## Sidebar (Extensions → GreenCalculus → Open GreenCalculus)
 
