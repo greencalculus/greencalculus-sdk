@@ -190,15 +190,28 @@ Recorded as reported; each becomes a Phase 1 item or a documented non-issue.
 
 > https://workspace.google.com/marketplace/app/greencalculus_emission_factors/172913449875
 
-Verified on the day of approval: the listing serves script **version 3**, and the OAuth
+Verified on the day of approval: the listing served script **version 3**, and the OAuth
 consent screen shows **Verified** on every Trust-and-Safety item — so an installer sees the
 three scopes and no unverified-app warning, and the 100-user cap is gone.
+
+**Version state, 2026-09-13.** Pushed and versioned as **v5** — the "source cell" →
+"source reference" wording correction across the sidebar, the six function help strings and
+the citation docs (measured: 5.8% of the corpus cites a spreadsheet cell, the rest cite a
+table, an annex clause or a page). No behaviour change; `appsscript.json` is untouched, so
+no new scopes and no re-review. The bound deployment was moved `@3 → @5`.
+**App Configuration still has to be set to 5 by hand** — see the note below on why the
+deployment id is not the thing that matters for an Editor add-on.
+*Ignore version 4:* it was created by accident by `clasp version list` (not a subcommand in
+clasp 3.x — it read "list" as the description) and holds code identical to v5.
 
 That version number matters more than it looks. Version 1 lowercased every factor key, which
 makes all 198 `gwp.*` factors unreachable from a cell; it also had no keyless batching, so a
 200-row sheet blew the 30 s custom-function limit. Anything listed on version 1 would have
 shipped those to strangers. **After any code change, re-read the version number in
-App Configuration — the listing does not follow `clasp push`.**
+App Configuration — the listing does not follow `clasp push`, and it does not follow
+`clasp update-deployment` either.** Updating the deployment is worth doing so the two agree,
+but for an Editor add-on it changes nothing an installer sees; only the version number in
+App Configuration does.
 
 The Marketplace SDK's **Editor add-on** integration takes the **script ID + a script VERSION number**, not the deployment ID (that is for Workspace add-ons).
 
