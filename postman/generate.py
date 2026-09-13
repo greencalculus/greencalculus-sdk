@@ -34,7 +34,6 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-import uuid
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -187,12 +186,27 @@ def main():
     ordered = [folders[t] for t in TAG_ORDER if t in folders and folders[t]["item"]]
     ordered += [f for t, f in folders.items() if t not in TAG_ORDER and f["item"]]
 
-    # A STABLE id, so re-importing REPLACES the collection instead of adding a
-    # second copy beside it. Postman matches on info._postman_id; without one it
-    # mints a fresh id per import, and a workspace being prepared for publication
-    # quietly accumulates "GreenCalculus API" two and three times over. Derived
-    # from the name, so it is the same on every machine and every regeneration.
-    postman_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "https://greencalculus.com/postman/collection"))
+    # THE ID OF THE COLLECTION THAT IS ACTUALLY PUBLISHED, not a derived one.
+    #
+    # This was uuid5(NAMESPACE_URL, "…/postman/collection") until 2026-09-13 —
+    # stable across machines, which is what the old comment cared about, and
+    # WRONG, which nothing checked. Postman assigns a collection its own id when
+    # the collection is first created in the app; it does not adopt one an
+    # importer invents. So the derived id matched nothing, every import created
+    # or updated a SECOND "GreenCalculus API" beside the published one, and the
+    # published documentation — bound to the real collection — never moved.
+    #
+    # Symptoms it produced, all at once: two identically-named collections in
+    # the workspace, a "Replace?" prompt that replaced the wrong one, published
+    # docs still serving the pre-correction copy, and a greyed-out Publish docs
+    # button on the duplicate.
+    #
+    # The value below is Postman's own, read from the published documentation's
+    # <meta name="collectionId"> at documenter.getpostman.com/view/58173296/
+    # 2sBYAyt8wZ — the uid there is "<ownerId>-<collectionId>", and this is the
+    # collection half. IF THE PUBLISHED COLLECTION IS EVER RECREATED, re-read it
+    # from that meta tag; do not invent one.
+    postman_id = "2ee06139-6fb5-485d-b1f3-3082efb005ff"
 
     collection = {
         "info": {

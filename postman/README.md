@@ -75,6 +75,25 @@ SEO toggle anywhere in the publish flow, while two other public
 `documenter.getpostman.com` pages carry no robots meta at all. Support has been
 asked. Until that changes, this is a directory listing, not an indexable page.
 
+**THE `_postman_id` WAS DERIVED, AND IT MATCHED NOTHING (fixed 2026-09-13).**
+`generate.py` minted it as `uuid5(NAMESPACE_URL, ".../postman/collection")` —
+stable across machines, which is what it was chosen for, and wrong, which
+nothing checked. **Postman assigns a collection its own id when the collection
+is created in the app; it does not adopt one an importer invents.** So every
+import created or updated a SECOND "GreenCalculus API" beside the published one,
+and the published documentation — bound to the real collection — never moved.
+
+Four symptoms at once, all the same cause: two identically-named collections in
+the workspace, a "Replace?" prompt that replaced the wrong one, published docs
+still serving pre-correction copy, and **Publish docs greyed out** on the
+duplicate (that slot belongs to the other collection).
+
+The id is now pinned to Postman's own:
+`2ee06139-6fb5-485d-b1f3-3082efb005ff`. **Where to re-read it if the published
+collection is ever recreated:** fetch the published docs URL and take
+`<meta name="collectionId">` — its value is `<ownerId>-<collectionId>` and you
+want the collection half. Do not invent one.
+
 **The documenter page is HEAD-ONLY server-rendered, so you cannot verify a
 collection change by fetching it.** Measured 2026-09-13: the `<head>` carries
 real title/og/twitter/description metadata, and the `<body>` yields **zero**
