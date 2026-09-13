@@ -94,13 +94,21 @@ collection is ever recreated:** fetch the published docs URL and take
 `<meta name="collectionId">` — its value is `<ownerId>-<collectionId>` and you
 want the collection half. Do not invent one.
 
-**The documenter page is HEAD-ONLY server-rendered, so you cannot verify a
-collection change by fetching it.** Measured 2026-09-13: the `<head>` carries
-real title/og/twitter/description metadata, and the `<body>` yields **zero**
-characters of visible text — no folder names, no request names, no collection
-description. A `curl` of that URL tells you what the *documentation settings*
-say and nothing at all about what the *collection* contains. Verify a re-import
-in the Postman app, or against the JSON in this directory.
+**The documenter PAGE is head-only server-rendered — but there is a content API
+behind it, and that IS how you verify a re-import.** The `<head>` carries real
+title/og/twitter/description metadata; the `<body>` yields **zero** characters of
+visible text. So fetching the page tells you what the *documentation settings*
+say and nothing about the *collection*. The page's own client fetches:
+
+```
+https://documenter.gw.postman.com/api/collections/58173296/2sBYAyt8wZ?segregateAuth=true&versionTag=latest
+```
+
+which returns the **published collection as JSON**, keyless, `cf-cache-status:
+DYNAMIC` (no caching to fight). Diff that against
+`greencalculus.postman_collection.json` and you know, rather than assume,
+whether an import reached the published collection. The two ids in the URL come
+from the page head: `ownerId` and `publishedId`.
 
 **PENDING — batch with the next listing change.** The published documentation's
 **title** still reads *"GreenCalculus API — emission factors with their source
