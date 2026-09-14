@@ -110,14 +110,40 @@ DYNAMIC` (no caching to fight). Diff that against
 whether an import reached the published collection. The two ids in the URL come
 from the page head: `ownerId` and `publishedId`.
 
-**PENDING — batch with the next listing change.** The published documentation's
-**title** still reads *"GreenCalculus API — emission factors with their source
-cell"*, and it is the source of `<title>`, `og:title` and `twitter:title` alike.
-It is a Publish-documentation setting, not anything in this repo, so the
-2026-09-13 wording sweep could not reach it. The collection copy and every
-per-request description are already correct. Suggested: *"GreenCalculus API —
-emission factors with their source reference"*. Low urgency: the page is
-`noindex`, so this is a browser tab and a social card.
+## Cleaned up 2026-09-14 — the duplicates are gone and the published copy is current
+
+The Postman API had 500'd on every `/collections` endpoint since 2026-09-13,
+which is why this sat. **It recovered.** With `GET` working, `PUT` was safe —
+the earlier warning was only ever about writing blind while reads were down.
+
+- **Three collections deleted**, each backed up first and each proved
+  disposable before deletion: `0fa5f072` and `ba4b5988` (the import duplicates —
+  diffed against the published one, **zero requests unique to either**) and
+  `d06c43c2` "My Collection" (Postman's default `postman-echo.com` samples).
+  One collection remains: the published `2ee06139`.
+- **The published collection was re-synced by `PUT`** from
+  `greencalculus.postman_collection.json`. It had been stale since 2026-09-12
+  and still carried *"the exact source cell behind each value"* in the
+  open-data feed description. Now 0 occurrences of "source cell", 1 of "source
+  reference", 28 operations intact, documenter and workspace both 200.
+
+**Verify a write the same way every time**: the content API above, not the
+documenter page and not a `postman.com` 200.
+
+**STILL PENDING — console only, no API route.** Two things cannot be done from
+here; `api-keys`, `me/api-keys`, `account/api-keys` and
+`collections/<uid>/documentation` all return **404**.
+
+1. The published documentation's **title** still reads *"GreenCalculus API —
+   emission factors with their source cell"*, the source of `<title>`,
+   `og:title` and `twitter:title` alike. It is a Publish-documentation setting,
+   not anything in this repo, so no sweep or re-import can reach it. Suggested:
+   *"GreenCalculus API — emission factors with their source reference"*. Low
+   urgency — the page is `noindex`, so this is a browser tab and a social card.
+2. The **API key used for this cleanup carries `admin`, `billing` and `user`**
+   (confirmed via `/me`). Revoke it at
+   `go.postman.co/settings/me/api-keys`; mint a narrower one if the collection
+   ever needs scripted updates again.
 
 Fields that silently truncate at **140 characters**: the workspace summary and
 the team tagline. The first attempt published "…and data versio".
