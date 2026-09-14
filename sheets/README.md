@@ -194,22 +194,42 @@ Verified on the day of approval: the listing served script **version 3**, and th
 consent screen shows **Verified** on every Trust-and-Safety item — so an installer sees the
 three scopes and no unverified-app warning, and the 100-user cap is gone.
 
-**PENDING listing edit — batch with the next one, do not trigger a review for
-it alone.** The Marketplace **short description** still reads *"Sourced carbon
-emission factors in a cell, with the publisher's exact source cell, data version
-and a citation. No signup needed."* — the universal form of a claim that
-describes 5.8% of the corpus (see the 2026-09-13 sweep). It lives in the console,
-not this repo. Suggested replacement, 138 of the 200 characters allowed:
+**SUBMITTED FOR REVIEW 2026-09-14 — the short description is fixed.** It now
+reads:
 
 > Sourced carbon emission factors in a cell, with the publisher's exact source
 > reference, data version and a citation. No signup needed.
 
-Short description is one of the four fields that **forces a re-review**
-(Language / Application name / Short / Detailed), which is why it waits for
-company. The **detailed** description's *"the exact cell in their workbook"*
-is CORRECT and must not be swept: it describes what
+134 of the 200 characters allowed. One word changed, `source cell` →
+`source reference`: the old phrasing was the universal form of a claim that
+describes **5.8%** of the corpus (2026-09-13 sweep), where "reference" is true
+of 100% — zero rows lack one.
+
+**This was done on its own, against the advice this section used to give.** The
+short description is one of four fields that **forces a re-review** (Language /
+Application name / Short / Detailed), and the note here said to batch it so a
+five-character wording fix would not put a freshly-approved listing back in
+Google's queue. The owner chose to ship it alone. Recording that as a decision,
+not an accident — and recording the cost, which is a review cycle on an
+otherwise-idle listing. **The rule still stands for the next one.**
+
+While in review the public page keeps serving the OLD text; that is not a
+failed save. Verify by fetching the listing and reading
+`<meta name="description">` — it flips to "source reference" when the review
+clears, and only then.
+
+Checked immediately after submission: **Application name, Language and the
+Detailed description were all untouched**, so only one of the four
+review-triggering fields actually moved.
+
+The **detailed** description's *"the exact cell in their workbook"* is CORRECT
+and must not be swept: it describes what
 `=GC_CITE("grid.gbr.electricity.location_based")` returns, and that row is DEFRA,
 where a cell genuinely is the reference.
+
+**Do not touch the script version while a listing review is open.** App
+Configuration is still pinned at version 1 while the deployment runs v5 — a
+separate, deliberate item. Changing it mid-submission resets the review.
 
 **Version state, 2026-09-13.** Pushed and versioned as **v5** — the "source cell" →
 "source reference" wording correction across the sidebar, the six function help strings and
