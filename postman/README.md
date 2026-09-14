@@ -134,16 +134,33 @@ documenter page and not a `postman.com` 200.
 here; `api-keys`, `me/api-keys`, `account/api-keys` and
 `collections/<uid>/documentation` all return **404**.
 
-1. The published documentation's **title** still reads *"GreenCalculus API —
-   emission factors with their source cell"*, the source of `<title>`,
-   `og:title` and `twitter:title` alike. It is a Publish-documentation setting,
-   not anything in this repo, so no sweep or re-import can reach it. Suggested:
-   *"GreenCalculus API — emission factors with their source reference"*. Low
-   urgency — the page is `noindex`, so this is a browser tab and a social card.
-2. The **API key used for this cleanup carries `admin`, `billing` and `user`**
-   (confirmed via `/me`). Revoke it at
-   `go.postman.co/settings/me/api-keys`; mint a narrower one if the collection
-   ever needs scripted updates again.
+**BOTH DONE 2026-09-14 in the console.**
+
+1. **Title changed** to *"GreenCalculus API — emission factors and their
+   sources"* (54 chars), and it propagated to `<title>`, `og:title` and
+   `twitter:title`. **The Title field caps at 60 characters** — the replacement
+   this file previously suggested, *"…with their source reference"*, is **64**
+   and would have been silently truncated, the same trap as the 140-char
+   workspace summary. Count before pasting. The chosen wording is also true of
+   100% of the corpus: zero rows lack a source reference, where "cell" described
+   only 5.8%.
+   Path, for next time: **Items** → **Collections** → the collection →
+   **Overview** → **View complete documentation** → **Docs published** icon →
+   **Edit published documentation** → **Edit settings** → **SEO** → **Title** →
+   **Save and republish**.
+2. **The `admin`/`billing`/`user` key was revoked** — `/me` and `/collections`
+   both 401 afterwards — and `POSTMAN_API_KEY` was removed from `~/.gc-secrets`.
+   Mint a narrower one at `go.postman.co/settings/me/api-keys` if the collection
+   ever needs scripted updates again; it is only needed for the `PUT`.
+
+**STILL `noindex,nofollow`, and it is not ours to change.** The SEO section
+holds exactly two fields — Title and Description. Postman exposes **no**
+indexing toggle, no "allow search engines" option, nothing. Re-measured
+2026-09-14: the meta tag is present in the raw HTML and under a Googlebot
+user-agent, there is no `X-Robots-Tag` header, and the host's `robots.txt` is
+empty, so the meta tag is the whole of it. The only open lever is the support
+thread opened 2026-09-13. **Do not count this page as an SEO surface** — plan
+around it, as [[reference_huggingface_spaces_org_plan]] does.
 
 Fields that silently truncate at **140 characters**: the workspace summary and
 the team tagline. The first attempt published "…and data versio".
