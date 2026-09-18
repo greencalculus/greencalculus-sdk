@@ -1,0 +1,3999 @@
+{
+  "components": {
+    "schemas": {
+      "Absence": {
+        "additionalProperties": true,
+        "description": "The reasoned counterpart to coverage: what we do NOT hold, and why. A classification tells you whether waiting for us is worth it.",
+        "properties": {
+          "absence": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "properties": {
+                "classification": {
+                  "type": "string"
+                },
+                "covers": {
+                  "description": "ISO3 codes this record accounts for.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "subject": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "description": "Keyed by pattern (e.g. \"*.grid\").",
+            "type": "object"
+          },
+          "caveat": {
+            "type": "string"
+          },
+          "classifications": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "The vocabulary and what each class commits us to — structural, not_yet_sourced, refused, held_not_published, not_surveyed.",
+            "type": "object"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "docs": {
+            "format": "uri",
+            "type": "string"
+          },
+          "evidence": {
+            "description": "Public pointer to the gap classification that produced these records.",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/Receipt"
+          }
+        },
+        "type": "object"
+      },
+      "Attribution": {
+        "description": "The credit the licence requires, or null on a plan that waives it. Was a bare STRING before 2026-08-25; the original string is preserved unchanged at `text`. `html` is a ready-to-paste anchor so that complying is less work than not complying, and `url` points at the public proof page for the exact factor and data version this answer used — your own audit evidence, not a marketing link.",
+        "properties": {
+          "html": {
+            "description": "A single anchor, no classes and no styling, ready to paste.",
+            "type": "string"
+          },
+          "required": {
+            "description": "Whether this plan must display the credit. Reports the licence position, not a technical control.",
+            "type": "boolean"
+          },
+          "text": {
+            "description": "The plain credit line. Identical to the string this field used to be.",
+            "type": "string"
+          },
+          "url": {
+            "description": "Proof page for the factor this answer used, pinned to the data version — e.g. https://verify.greencalculus.com/grid.gbr.electricity.location_based@2026.181. Null where no single factor identifies the answer. The version is deliberate: an unversioned link would silently re-point at whatever the figure becomes.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "BatchCalculation": {
+        "additionalProperties": true,
+        "description": "Up to 100 mixed-methodology calculations in one call. A failed item does not fail the batch — it lands in results with its own error.",
+        "properties": {
+          "attribution": {
+            "$ref": "#/components/schemas/Attribution"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CalcMeta"
+          },
+          "methodology": {
+            "example": "batch",
+            "type": "string"
+          },
+          "proof_urls": {
+            "$ref": "#/components/schemas/ProofUrls"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/Receipt"
+          },
+          "results": {
+            "description": "One entry per input item, in order. Each is the engine's own response shape, or an error for that item alone.",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "succeeded": {
+            "type": "integer"
+          },
+          "total": {
+            "additionalProperties": true,
+            "description": "The summed emissions across items that succeeded.",
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "CalcMeta": {
+        "additionalProperties": true,
+        "properties": {
+          "gc_updated": {
+            "example": "2026-08-19",
+            "type": "string"
+          },
+          "gc_version": {
+            "example": "2026.180",
+            "type": "string"
+          },
+          "reproducible": {
+            "description": "How to pin this result for an audit.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Calculation": {
+        "additionalProperties": true,
+        "description": "The SINGLE-FACTOR engines — ghg-activity, freight, spend-based and business-travel. The full working, never just a total. The block echoing your input is named per engine (activity | transport | spend | trip); everything else below is shared. The other four engines answer a different question and have their own schemas: ElectricityCalculation, PcafCalculation, EmbodiedCalculation, BatchCalculation.",
+        "properties": {
+          "activity": {
+            "additionalProperties": true,
+            "description": "ghg-activity only. freight sends `transport`, spend-based `spend`, business-travel `trip`.",
+            "type": "object"
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/Attribution"
+          },
+          "emissions": {
+            "additionalProperties": true,
+            "properties": {
+              "range": {
+                "additionalProperties": true,
+                "description": "Propagated from the factor's published uncertainty. null where the publisher states none — not a claim of certainty.",
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "unit": {
+                "example": "kg CO2e",
+                "type": "string"
+              },
+              "value": {
+                "example": 654.8,
+                "type": "number"
+              }
+            },
+            "type": "object"
+          },
+          "factor": {
+            "additionalProperties": true,
+            "properties": {
+              "citation": {
+                "$ref": "#/components/schemas/Citation"
+              },
+              "gas": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "gwp_set": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "key": {
+                "type": "string"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "resolution": {
+                "additionalProperties": true,
+                "description": "Present ONLY when the request sent `country`. tier is exact | global | proxy; proxy_of names the country the factor actually belongs to. Absent means no geography claim was made — NOT that the match was exact.",
+                "properties": {
+                  "proxy_of": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "tier": {
+                    "example": "proxy",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "uncertainty": {
+                "$ref": "#/components/schemas/Uncertainty"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              }
+            },
+            "type": "object"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CalcMeta"
+          },
+          "methodology": {
+            "example": "ghg-activity",
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "proof_urls": {
+            "$ref": "#/components/schemas/ProofUrls"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/Receipt"
+          },
+          "scope": {
+            "additionalProperties": true,
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceRef"
+          },
+          "standard": {
+            "example": "GHG Protocol Corporate Standard (activity-based)",
+            "type": "string"
+          },
+          "working": {
+            "additionalProperties": true,
+            "description": "The arithmetic in the open — unit conversion and the formula as evaluated.",
+            "properties": {
+              "formula": {
+                "example": "5000 kWh × 0.13096 (kg CO2e per kWh) = 654.8 kg CO2e",
+                "type": "string"
+              },
+              "unit_conversion": {
+                "example": "5 MWh = 5000 kWh (converted to the factor's basis)",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "ChangesList": {
+        "additionalProperties": true,
+        "description": "Data releases, newest first. Per-release records begin at the archive's delta watershed (meta.record_begins); earlier versions are archived and pinnable via ?as_of= but not summarised.",
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "properties": {
+              "next_cursor": {
+                "description": "Pass back as ?cursor= to resume. null on the last page.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "record_begins": {
+                "type": "string"
+              },
+              "returned": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "releases": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "added": {
+                  "type": "integer"
+                },
+                "changed": {
+                  "type": "integer"
+                },
+                "date": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "detail": {
+                  "description": "URL of the per-release record.",
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "withdrawn": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "ChangesRelease": {
+        "additionalProperties": true,
+        "description": "One release: every factor row it added, changed or withdrew, each independently checkable on its verify page.",
+        "properties": {
+          "entries": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "kind": {
+                  "enum": [
+                    "added",
+                    "changed",
+                    "withdrawn"
+                  ],
+                  "type": "string"
+                },
+                "unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "value": {
+                  "description": "The NEW headline value. Absent on withdrawn rows.",
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "properties": {
+              "counts": {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              "date": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "entries_returned": {
+                "type": "integer"
+              },
+              "entries_total": {
+                "type": "integer"
+              },
+              "truncated": {
+                "description": "true when the release changed more rows than one response carries; the KV record is complete.",
+                "type": "boolean"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "Citation": {
+        "additionalProperties": true,
+        "description": "A ready-to-paste citation assembled from the source registry.",
+        "properties": {
+          "cell_ref": {
+            "example": "'UK electricity'!E25",
+            "type": "string"
+          },
+          "licence": {
+            "type": "string"
+          },
+          "mb_version": {
+            "type": "string"
+          },
+          "source_id": {
+            "example": "DEFRA_2026",
+            "type": "string"
+          },
+          "source_name": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Corpus": {
+        "additionalProperties": true,
+        "description": "Bulk feed, Business and above. Redistributable rows ONLY — filtering is driven by a per-source licence tier recorded against the data, and a source whose position has not been assessed is withheld. Every row carries redistributable: true so you can verify what you received.",
+        "properties": {
+          "factors": {
+            "items": {
+              "$ref": "#/components/schemas/FactorRow"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "Coverage": {
+        "additionalProperties": true,
+        "description": "Country × family coverage, generated from the live corpus. Scores measure PRESENCE of a family, never sufficiency — a country can score 13/13 and still lack the row you need.",
+        "properties": {
+          "caveat": {
+            "type": "string"
+          },
+          "coverage": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "properties": {
+                "band": {
+                  "enum": [
+                    "complete",
+                    "partial",
+                    "minimal"
+                  ],
+                  "type": "string"
+                },
+                "families": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "description": "Row count held per family. 0 means we hold none.",
+                  "type": "object"
+                },
+                "name": {
+                  "example": "UK",
+                  "type": "string"
+                },
+                "of": {
+                  "example": 13,
+                  "type": "integer"
+                },
+                "score": {
+                  "example": 13,
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "description": "Keyed by ISO3.",
+            "type": "object"
+          },
+          "docs": {
+            "format": "uri",
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "properties": {
+              "bands": {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "description": "Counts per band. complete = 10+ of 13 families present, partial = 4–9, minimal = 1–3.",
+                "type": "object"
+              },
+              "countries": {
+                "example": 151,
+                "type": "integer"
+              },
+              "families": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "The thirteen family slugs mapped to their human labels.",
+                "type": "object"
+              },
+              "filters": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "gc_updated": {
+                "format": "date",
+                "type": "string"
+              },
+              "gc_version": {
+                "type": "string"
+              },
+              "returned": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/Receipt"
+          }
+        },
+        "type": "object"
+      },
+      "Digest": {
+        "additionalProperties": true,
+        "description": "The summary cadence for this account. Off by default. Each edition covers exactly the period since the last one, so it fits any financial year without configuration.",
+        "properties": {
+          "cadence": {
+            "enum": [
+              "off",
+              "monthly",
+              "quarterly"
+            ],
+            "type": "string"
+          },
+          "last_sent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "ElectricityCalculation": {
+        "additionalProperties": true,
+        "description": "GHG Protocol Scope 2 — reports location-based and market-based SIDE BY SIDE, which is why this engine does not share the single-factor shape. market_based is null unless you supply a market instrument.",
+        "properties": {
+          "attribution": {
+            "$ref": "#/components/schemas/Attribution"
+          },
+          "consumption": {
+            "additionalProperties": true,
+            "properties": {
+              "kwh": {
+                "description": "Normalised to kWh.",
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              }
+            },
+            "type": "object"
+          },
+          "location_based": {
+            "additionalProperties": true,
+            "properties": {
+              "emissions": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "factor": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "formula": {
+                "type": "string"
+              },
+              "method": {
+                "example": "location-based (grid average)",
+                "type": "string"
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "market_based": {
+            "additionalProperties": true,
+            "description": "null when no market instrument was supplied — the absence of a market figure, not a zero.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CalcMeta"
+          },
+          "methodology": {
+            "example": "electricity",
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "proof_urls": {
+            "$ref": "#/components/schemas/ProofUrls"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/Receipt"
+          },
+          "scope": {
+            "additionalProperties": true,
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "standard": {
+            "example": "GHG Protocol Scope 2 Guidance — location-based + market-based",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "EmbodiedCalculation": {
+        "additionalProperties": true,
+        "description": "Whole-life embodied carbon, EN 15978 modular. Per-material and per-module, with data gaps declared rather than silently zeroed.",
+        "properties": {
+          "attribution": {
+            "$ref": "#/components/schemas/Attribution"
+          },
+          "materials": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "boundary": {
+                  "description": "The EN 15978 modules this figure covers.",
+                  "type": "string"
+                },
+                "embodied_carbon": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "gaps": {},
+                "id": {},
+                "material": {},
+                "material_key": {
+                  "type": "string"
+                },
+                "module_d": {},
+                "quantity": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "source": {
+                  "$ref": "#/components/schemas/SourceRef"
+                },
+                "stages": {
+                  "description": "Per EN 15978 life-cycle stage. `in_boundary` says whether the stage counts toward this result — a stage OUTSIDE the boundary is still reported, with its value, rather than hidden.",
+                  "items": {
+                    "additionalProperties": true,
+                    "properties": {
+                      "in_boundary": {
+                        "type": "boolean"
+                      },
+                      "modules": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "stage": {
+                        "example": "A1-A3",
+                        "type": "string"
+                      },
+                      "unit": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CalcMeta"
+          },
+          "methodology": {
+            "example": "embodied-carbon",
+            "type": "string"
+          },
+          "proof_urls": {
+            "$ref": "#/components/schemas/ProofUrls"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/Receipt"
+          },
+          "result": {
+            "additionalProperties": true,
+            "properties": {
+              "has_data_gaps": {
+                "description": "true where a module carries no factor. The gap is declared, never treated as zero.",
+                "type": "boolean"
+              },
+              "materials_count": {
+                "type": "integer"
+              },
+              "total_embodied_carbon": {
+                "additionalProperties": true,
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "standard": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Error": {
+        "additionalProperties": true,
+        "description": "The single error envelope, on every non-2xx response from every endpoint. Stated on /developers/docs and enforced at the gateway for origin-raised errors too — read the code from error.code.",
+        "properties": {
+          "error": {
+            "additionalProperties": true,
+            "properties": {
+              "code": {
+                "description": "Stable machine-readable code. Transport-level: unauthorized, forbidden_tier, not_found, rate_limited, quota_exceeded, overage_cap_reached, busy, origin_unavailable, invalid_request. Validation codes are namespaced gc_* and named per endpoint (gc_unknown_param, gc_limit_too_large, gc_offset_invalid, gc_cursor_invalid, gc_section_conflict, and the per-engine gc_<engine>_* set).",
+                "example": "gc_unknown_param",
+                "type": "string"
+              },
+              "details": {
+                "additionalProperties": true,
+                "description": "Present only when the failing endpoint attached structured detail beyond the HTTP status.",
+                "type": "object"
+              },
+              "docs": {
+                "example": "https://greencalculus.com/developers/docs/#errors",
+                "format": "uri",
+                "type": "string"
+              },
+              "message": {
+                "description": "Human-readable and specific — a 4xx names the offending parameter and lists the accepted set.",
+                "example": "Unknown query parameter: bogus. This endpoint accepts: offset, cursor, limit, section, key_prefix, family, search. Free-text lookup is ?search=.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "FactorCitation": {
+        "additionalProperties": true,
+        "description": "The canonical citation for one factor row, built by the API (src/citation.ts) and printed VERBATIM by every official client (Sheets add-in, JS and Python SDKs, MCP). Format: \"<factor name>. <source name> — <publisher>, cell <cell_ref>, retrieved <date>. via GreenCalculus data version <version>, factor <key>. <proof URL>\". On GET /v1/factors/{key} the version is the one actually SERVED, so a ?as_of= lookup cites the pin. Present on rows from 2026-09-09. The format is a published specification, free for anyone to implement against their own data: https://greencalculus.com/developers/citation/",
+        "externalDocs": {
+          "description": "The factor citation specification",
+          "url": "https://greencalculus.com/developers/citation/"
+        },
+        "properties": {
+          "cell_ref": {
+            "example": "'UK electricity'!E25",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "proof_url": {
+            "example": "https://verify.greencalculus.com/grid.gbr.electricity.location_based@2026.186",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_id": {
+            "example": "DEFRA_2026",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "text": {
+            "example": "UK grid electricity — location-based (generation). UK Government GHG Conversion Factors 2026 — Department for Energy Security and Net Zero (DESNZ), cell 'UK electricity'!E25, retrieved 2026-06-18. via GreenCalculus data version 2026.186, factor grid.gbr.electricity.location_based. https://verify.greencalculus.com/grid.gbr.electricity.location_based@2026.186",
+            "type": "string"
+          },
+          "version": {
+            "example": "2026.186",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "FactorHistory": {
+        "additionalProperties": true,
+        "properties": {
+          "current": {
+            "additionalProperties": true,
+            "description": "null when the key is withdrawn from the live corpus.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "history": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "date": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "kind": {
+                  "enum": [
+                    "recorded",
+                    "withdrawn"
+                  ],
+                  "type": "string"
+                },
+                "unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "version": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "key": {
+            "type": "string"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "FactorList": {
+        "additionalProperties": true,
+        "description": "Browse/search results. Open — no key, no quota. Values ARE returned on this route. Use /v1/factors/{key} when you want one row plus its audit envelope (provenance, licence, verification) or a version pin via ?as_of=.",
+        "properties": {
+          "factors": {
+            "items": {
+              "$ref": "#/components/schemas/FactorRow"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "properties": {
+              "canonical_total": {
+                "description": "Rows in the whole corpus at this version.",
+                "example": 16554,
+                "type": "integer"
+              },
+              "filters": {
+                "additionalProperties": true,
+                "description": "The filters as the endpoint understood them — echoed back so a silent mismatch is visible.",
+                "type": "object"
+              },
+              "gc_updated": {
+                "example": "2026-08-19",
+                "format": "date",
+                "type": "string"
+              },
+              "gc_version": {
+                "example": "2026.180",
+                "type": "string"
+              },
+              "licences": {
+                "additionalProperties": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "attribution": {
+                      "type": "string"
+                    },
+                    "basis": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "publisher": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "redistributable": {
+                      "type": "boolean"
+                    },
+                    "url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "description": "One record per DISTINCT source on this page, keyed by source id — so the licence detail is carried once rather than repeated on every row. Join via factors[].source.id. `attribution` is present ONLY where the licence grants redistribution and requires a credit; its absence on a non-redistributable row is deliberate.",
+                "type": "object"
+              },
+              "next_cursor": {
+                "description": "base64(canonical_key). Prefer this over offset — stable across data-version bumps, and required to page relevance-ordered search results.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "offset": {
+                "type": "integer"
+              },
+              "returned": {
+                "type": "integer"
+              },
+              "total": {
+                "description": "Rows matching the filter.",
+                "example": 82,
+                "type": "integer"
+              },
+              "warnings": {
+                "description": "Why a filter matched nothing. A 200 with an empty array and a warning is the normal way this endpoint says \"no such thing\".",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "meta",
+          "factors"
+        ],
+        "type": "object"
+      },
+      "FactorLookup": {
+        "additionalProperties": true,
+        "description": "One factor with its value and the full audit envelope. Served from the edge KV store.",
+        "properties": {
+          "attribution": {
+            "$ref": "#/components/schemas/Attribution"
+          },
+          "factor": {
+            "$ref": "#/components/schemas/FactorRow",
+            "description": "The full row. Its `citation` is built at served_version, so a pinned lookup cites the pin."
+          },
+          "gas": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "proof_urls": {
+            "$ref": "#/components/schemas/ProofUrls"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "served_from": {
+            "example": "edge",
+            "type": "string"
+          },
+          "served_version": {
+            "example": "2026.180",
+            "type": "string"
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "value": {
+            "description": "Convenience top-level copy of factor.factor.value.",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "verification": {
+            "$ref": "#/components/schemas/Verification"
+          },
+          "version_pin": {
+            "additionalProperties": true,
+            "description": "Present only when ?as_of= was sent — and not even then if the key did not exist at an archived version you asked for, which falls back to the browse envelope instead. `matched: false` means the requested version is not in the archive and the CURRENT value was served — check it before treating a response as pinned.",
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "FactorMiss": {
+        "additionalProperties": true,
+        "description": "A key that does not exist. Carries candidate keys rather than a bare 404 — most misses are a naming difference, not a coverage gap. The documented error envelope is present alongside the bespoke fields.",
+        "properties": {
+          "docs": {
+            "format": "uri",
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          },
+          "found": {
+            "example": false,
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "requested_key": {
+            "type": "string"
+          },
+          "suggestions": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "section": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "FactorRow": {
+        "additionalProperties": true,
+        "description": "One corpus row as returned by browse/search. Carries the full row INCLUDING factor.value — the browse endpoint is open and unmetered by design, because our data is overwhelmingly open-licensed at source and gating it would make this API worse than the original publisher. What a paid plan adds is the right to REDISTRIBUTE, not the ability to read. (Note: the MCP search_factors tool DOES project rows down to key/name/section — that projection is deliberate and specific to that tool.)",
+        "properties": {
+          "activity_type": {
+            "example": "purchased_energy",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "citation": {
+            "$ref": "#/components/schemas/FactorCitation"
+          },
+          "components": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "description": "Per-gas decomposition keyed by gas (co2, ch4, n2o…), each with its own cell_ref. Lets a consumer re-base AR5↔AR6 without us.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "factor": {
+            "additionalProperties": true,
+            "properties": {
+              "basis": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "country_iso3": {
+                "example": "gbr",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "gas": {
+                "example": "CO2e",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "gwp_set": {
+                "example": "AR5_100",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "gwp_set_basis": {
+                "description": "How we know the GWP set — \"published\" where the source states it, \"inferred\" where we deduced it. null means not recorded, which is deliberately NOT the same as published.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "uncertainty": {
+                "$ref": "#/components/schemas/Uncertainty"
+              },
+              "uncertainty_basis": {
+                "description": "\"none_published\" means the publisher states plainly that no range exists. null means not recorded — a different fact from silence.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "unit": {
+                "example": "kg CO2e per kWh",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "value": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "key": {
+            "example": "grid.gbr.electricity.location_based",
+            "type": "string"
+          },
+          "licence": {
+            "additionalProperties": true,
+            "description": "The licence this row is published under, and whether the Business redistribution grant covers it. Present on the open browse from MB v2026.181 — the full terms, the required credit and the publisher are listed once per source under meta.licences. Absent (not empty) where no licence is on record: an empty value would read as \"no licence applies\".",
+            "properties": {
+              "name": {
+                "example": "Open Government Licence v3.0",
+                "type": "string"
+              },
+              "redistributable": {
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "description": "Includes what the publisher did NOT provide, stated verbatim.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scope": {
+            "additionalProperties": true,
+            "properties": {
+              "category": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ghg_protocol": {
+                "example": "scope2",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "section": {
+            "example": "grid",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceRef"
+          }
+        },
+        "type": "object"
+      },
+      "Health": {
+        "additionalProperties": true,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OpenApiDocument": {
+        "additionalProperties": true,
+        "description": "This document. An OpenAPI 3.1 description of the endpoints listed here.",
+        "type": "object"
+      },
+      "PcafCalculation": {
+        "additionalProperties": true,
+        "description": "PCAF financed emissions, per holding and in aggregate. The data-quality score is PCAF's 1-5 by DATA SOURCE TYPE — it is a property of YOUR inputs and asset class, not of our factor.",
+        "properties": {
+          "asset_class": {
+            "description": "The single asset class, when every holding shares one; null for a mixed portfolio.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/Attribution"
+          },
+          "audit": {
+            "additionalProperties": true,
+            "description": "The formula applied, the methodology source, and every factor used.",
+            "properties": {
+              "factors_used": {},
+              "formula": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "One named formula per step — attribution_factor, financed_emissions, weighted_dq_score — each written out in full.",
+                "type": "object"
+              },
+              "methodology_source": {}
+            },
+            "type": "object"
+          },
+          "holdings": {
+            "description": "Per holding, so a portfolio total can be traced to the line that produced it.",
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "attribution_factor": {
+                  "type": "number"
+                },
+                "company_emissions": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "data_quality_score": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "denominator": {
+                  "additionalProperties": true,
+                  "description": "{ type: evic | equity_plus_debt, value }.",
+                  "type": "object"
+                },
+                "financed_emissions": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "outstanding_amount": {
+                  "type": "number"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CalcMeta"
+          },
+          "methodology": {
+            "example": "pcaf",
+            "type": "string"
+          },
+          "proof_urls": {
+            "$ref": "#/components/schemas/ProofUrls"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/Receipt"
+          },
+          "result": {
+            "additionalProperties": true,
+            "properties": {
+              "data_quality_coverage": {},
+              "financed_emissions": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "holdings_count": {
+                "type": "integer"
+              },
+              "weighted_data_quality_score": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
+          "standard": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ProofUrls": {
+        "description": "Every factor used by this answer, as a public proof URL pinned to the data version. A portfolio calculation may list many; cite per line from here. Contains no request data — each URL is a fact about the GreenCalculus corpus and is identical for every caller.",
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "Provenance": {
+        "additionalProperties": true,
+        "description": "Where the number came from and whether you may republish it. Built from the source registry — src/envelope.ts.",
+        "properties": {
+          "cell_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "licence": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "publisher": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "redistributable": {
+            "description": "Whether the Business redistribution grant covers this row. Fails closed — a source whose licence has not been assessed is false, not null.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "redistributable_basis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "retrieved": {
+            "format": "date",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "update_cadence": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "Receipt": {
+        "additionalProperties": true,
+        "description": "Deterministic tamper-evidence. To verify: remove the `receipt` and `attribution` keys from the response, sort every object's keys recursively, serialise to JSON with slashes and Unicode unescaped, and SHA-256 the result — it equals `receipt.id` with the `gcr_` prefix stripped. The receipt's own `verify` field states the same recipe.",
+        "properties": {
+          "algorithm": {
+            "example": "sha256",
+            "type": "string"
+          },
+          "id": {
+            "example": "gcr_5a7b64dfa501bfea508cba7d0e5d8d03…",
+            "type": "string"
+          },
+          "mb_version": {
+            "example": "2026.180",
+            "type": "string"
+          },
+          "verify": {
+            "description": "Plain-language instructions for recomputing the digest.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Resolve": {
+        "additionalProperties": true,
+        "description": "Plain-description → candidate factors, ranked. Deliberately NOT a single answer: every live defect this endpoint produced was a CONFIDENT wrong answer, so each match carries a confidence, a label and the reasons behind it.",
+        "properties": {
+          "absence": {
+            "additionalProperties": true,
+            "description": "Present when nothing matched AND we hold a reasoned absence record explaining why — including the case where we DO hold it under another name.",
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "count": {
+            "type": "integer"
+          },
+          "country_iso3": {
+            "description": "The country parsed out of the description, or null.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matches": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "basis": {
+                  "description": "What the publisher measured — the boundary. Distinguishes same-named rows that differ only in method.",
+                  "example": "direct combustion at the generator; generation basis — transmission and distribution losses EXCLUDED",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "confidence": {
+                  "example": 0.92,
+                  "type": "number"
+                },
+                "country_iso3": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "geo_match": {
+                  "description": "\"proxy\" is a factor from a DIFFERENT country than the one asked for; its confidence is discounted accordingly.",
+                  "enum": [
+                    "exact",
+                    "global",
+                    "proxy"
+                  ],
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "description": "Set to \"review\" on low confidence, a thin match, a proxy geography, a demoted row, or an `outside_scopes` row returned ALONGSIDE an in-scope one (a memo figure standing next to the inventory figure it would be mistaken for). A set that is entirely outside_scopes — a product-footprint or CBAM query — is NOT demoted, because there is nothing there to confuse it with. Treat \"review\" as needing a human: a bare float cannot warn anyone.",
+                  "enum": [
+                    "accept",
+                    "review"
+                  ],
+                  "type": "string"
+                },
+                "matched_on": {
+                  "description": "Which tokens actually matched.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "scope": {
+                  "additionalProperties": true,
+                  "description": "GHG Protocol placement of this row. THIS IS THE FIELD THAT MAKES A RANKED LIST DECIDABLE: \"UK grid electricity\" returns four exact-country rows spanning 0.11507 to 0.28064, and `ghg_protocol` plus `basis` are what tell them apart — two are scope2 (location-based and residual mix, both wanted for dual reporting) and two are outside_scopes (a lifecycle intensity and a biogenic memo) which must never enter a Scope 2 total.",
+                  "properties": {
+                    "category": {
+                      "example": "purchased_electricity",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "ghg_protocol": {
+                      "example": "scope2",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "section": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "source_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "why": {
+                  "description": "The reasons behind the label, in plain language.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "methodology": {
+            "example": "resolve",
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "query": {
+            "description": "The description as received.",
+            "type": "string"
+          },
+          "tokens": {
+            "description": "How the description was tokenised — shown so a bad parse is visible rather than mysterious.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Roadmap": {
+        "additionalProperties": true,
+        "description": "Factor gaps the telemetry actually recorded, most-requested first. Rebuilt daily from 90 days of misses; a key appears only after crossing the request floor in meta.floor, which is what separates demand from one-off probes. An empty list is a statement about the record, not about demand — meta.note says which.",
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "requests": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "properties": {
+              "floor": {
+                "description": "Requests a key needs before it is listed.",
+                "type": "integer"
+              },
+              "generated": {
+                "description": "ISO timestamp of the last rebuild.",
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "window_days": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "SourceFeed": {
+        "additionalProperties": true,
+        "description": "One publisher's dataset, whole: every row we transcribed from it, with the publisher, the licence, the retrieval date and the exact source reference per row. The unit of CITATION rather than the unit of query — you take this when you want to hold a publisher's set, not when you want one number.",
+        "properties": {
+          "api_endpoint": {
+            "description": "The origin route this feed is projected from.",
+            "type": "string"
+          },
+          "attribution": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "dataset": {
+            "example": "UK DEFRA fuel combustion emission factors (2026)",
+            "type": "string"
+          },
+          "factors": {
+            "items": {
+              "$ref": "#/components/schemas/FactorRow"
+            },
+            "type": "array"
+          },
+          "gc_updated": {
+            "format": "date",
+            "type": "string"
+          },
+          "gc_version": {
+            "example": "2026.182",
+            "type": "string"
+          },
+          "next_update": {
+            "description": "When the publisher next issues, and how long we take to reconcile — stated so a stale figure is predictable rather than a surprise.",
+            "type": "string"
+          },
+          "schema_version": {
+            "example": "1.0",
+            "type": "string"
+          },
+          "sources": {
+            "description": "The publisher record: id, name, issuing body, url, licence, year, retrieval date.",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "SourceRef": {
+        "additionalProperties": true,
+        "description": "Provenance to the line. Carried on 100% of rows — where in the source document the value was read, not just which document. A workbook cell where the publisher ships a workbook (DEFRA); otherwise the table, annex clause or page they did ship (IPCC, CBAM, ECCC).",
+        "properties": {
+          "cell_ref": {
+            "example": "'UK electricity'!E25",
+            "type": "string"
+          },
+          "id": {
+            "example": "DEFRA_2026",
+            "type": "string"
+          },
+          "retrieved": {
+            "example": "2026-06-18",
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Status": {
+        "additionalProperties": true,
+        "description": "Recorded uptime from a probe inside the API worker. A window reads null until the collected history spans it — we do not extrapolate a short record.",
+        "properties": {
+          "caveat": {
+            "description": "Includes the probe's own blind spot — it runs inside the worker, so it cannot see the worker being wholly down.",
+            "type": "string"
+          },
+          "checks_recorded": {
+            "type": "integer"
+          },
+          "days_recorded": {
+            "type": "integer"
+          },
+          "failing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "probes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "since": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "operational",
+              "degraded",
+              "down"
+            ],
+            "type": "string"
+          },
+          "transitions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "uptime_basis": {
+            "additionalProperties": true,
+            "description": "When collection started, how many checks, and the date each window becomes reportable.",
+            "type": "object"
+          },
+          "uptime_pct": {
+            "additionalProperties": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "description": "Keyed 24h / 7d / 30d. null means not yet measurable, NOT zero.",
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "Uncertainty": {
+        "additionalProperties": true,
+        "description": "The publisher's own stated range, never derived by us. null means NOT RECORDED — explicitly not a claim that no uncertainty exists.",
+        "properties": {
+          "basis": {
+            "example": "published",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "high": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "low": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "published_as": {
+            "description": "The publisher's exact wording, e.g. \"±30-50%\".",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "Verification": {
+        "additionalProperties": true,
+        "description": "What was actually checked — computed at serve time, not asserted.",
+        "properties": {
+          "components_sum_to_value": {
+            "description": "Whether the per-gas components sum to the headline. null where the row carries no components — the absence of a check is not a failed check.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "gwp_set": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gwp_set_basis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uncertainty": {
+            "$ref": "#/components/schemas/Uncertainty"
+          },
+          "uncertainty_basis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "WatchDiff": {
+        "additionalProperties": true,
+        "description": "What changed for the watched keys between two dates — the value at each boundary, whether it moved, and a proof link per side. Dates resolve to data versions through the change record; a `from` older than the record clamps to the archive watershed and says so.",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "keys": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "changed": {
+                  "type": "boolean"
+                },
+                "from": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "held": {
+                      "type": "boolean"
+                    },
+                    "unit": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "key": {
+                  "type": "string"
+                },
+                "proof": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "to": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "held": {
+                      "type": "boolean"
+                    },
+                    "unit": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "versions_touching": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "note": {
+            "description": "Present when there is nothing to diff, or when a boundary was clamped.",
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "WatchList": {
+        "additionalProperties": true,
+        "description": "The factor keys this account is alerted on when a release touches them.",
+        "properties": {
+          "cap": {
+            "description": "Maximum keys per account.",
+            "type": "integer"
+          },
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "WatchMutation": {
+        "additionalProperties": true,
+        "description": "The watchlist after the change, and which key moved.",
+        "properties": {
+          "added": {
+            "type": "string"
+          },
+          "keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "removed": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "description": "Your API key, e.g. \"Bearer gc_live_…\". Get one free at https://greencalculus.com/developers/.",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "The factor citation specification — the line that travels with every number",
+    "url": "https://greencalculus.com/developers/citation/"
+  },
+  "info": {
+    "contact": {
+      "email": "jeremiah@greencalculus.com",
+      "name": "GreenCalculus",
+      "url": "https://greencalculus.com/developers/"
+    },
+    "description": "Sourced greenhouse-gas emission factors and audit-traced carbon calculations. Every value returns with its exact source reference and data version — reproducible and citable. Free key at https://greencalculus.com/developers/.\n\nSCOPE: this document describes every endpoint we publish a callable example for — the data, calculation, discovery and watch endpoints. It deliberately excludes the control plane behind greencalculus.com (billing, sign-in, key management, admin), which is not a customer contract and is free to change, and /v1/account/webhook, whose configuration is session-only by design and therefore cannot be exercised with the bearer token this document describes. Those exclusions are enumerated and enforced by scripts/check-openapi-drift.mjs, so an endpoint is absent here because it was excluded, never because it was forgotten.",
+    "license": {
+      "name": "Attribution required except on Enterprise",
+      "url": "https://greencalculus.com/developers/docs/#attribution"
+    },
+    "title": "GreenCalculus API",
+    "version": "v1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/v1/absence": {
+      "get": {
+        "description": "Open (no key). The reasoned counterpart to /v1/coverage: where that reports a zero, this reports why. Each record carries the subject, the publisher we checked, the route we tried, a confidence and a review date. Five classifications: \"structural\" (no publisher issues this anywhere — stop retrying), \"not_yet_sourced\" (a publisher exists and is named; our backlog), \"refused\" (we found it and declined; the reason is stated), \"held_not_counted\" (we DO hold it — see we_hold for the key — and the coverage metric cannot see it), and \"coupled\" (zero only because another family is zero). These are authored judgements about what the world publishes, not values derived from our corpus, so each carries a review date and reports stale:true once past it.",
+        "parameters": [
+          {
+            "description": "ISO-3166 alpha-3 code.",
+            "example": "can",
+            "in": "query",
+            "name": "country",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Inventory family, as used by /v1/coverage.",
+            "example": "water",
+            "in": "query",
+            "name": "family",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "structural | not_yet_sourced | refused | held_not_counted | coupled.",
+            "example": "structural",
+            "in": "query",
+            "name": "classification",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Absence"
+                }
+              }
+            },
+            "description": "Absence records + the classification legend + caveat"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unknown classification — the valid set is named in the error"
+          }
+        },
+        "security": [],
+        "summary": "Absence — why a factor is NOT in the corpus",
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/v1/account/watch": {
+      "get": {
+        "description": "Bearer key or signed-in session.",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchList"
+                }
+              }
+            },
+            "description": "The current watchlist and its cap"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "No valid key or session"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "The factor keys this account is alerted on",
+        "tags": [
+          "Account"
+        ]
+      },
+      "post": {
+        "description": "A release that touches the key emails old to new with the versioned verify link. A key that is not in the corpus is REFUSED with 422 rather than accepted as an alert that could never fire.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "key": "grid.gbr.electricity.location_based"
+              },
+              "schema": {
+                "properties": {
+                  "key": {
+                    "description": "A canonical factor key.",
+                    "example": "grid.gbr.electricity.location_based",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchMutation"
+                }
+              }
+            },
+            "description": "The watchlist after the addition"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "No key in the body"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "No valid key or session"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The key is not in the corpus, so watching it would never alert"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Watch a factor key",
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/v1/account/watch/diff": {
+      "get": {
+        "description": "The reporting-period question, answered directly: per key, the value at each boundary, whether it moved, the versions that touched it, and a proof link per side — the evidence a restatement decision needs. A `from` older than the change record clamps to the archive watershed and the response says so.",
+        "parameters": [
+          {
+            "example": "2026-01-01",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Defaults to today.",
+            "example": "2026-12-31",
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchDiff"
+                }
+              }
+            },
+            "description": "Per-key boundary values and proof links"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing or malformed from/to"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "No valid key or session"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "What changed for your watched keys between two dates",
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/v1/account/watch/digest": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Digest"
+                }
+              }
+            },
+            "description": "The current cadence"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "No valid key or session"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Read the summary cadence",
+        "tags": [
+          "Account"
+        ]
+      },
+      "post": {
+        "description": "Off by default. Each edition covers exactly the period since the last one — anchored to itself, so it fits any financial year with no configuration. Quiet periods still send: \"your saved figures stand\" is the answer a reporting team needs.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "cadence": "monthly"
+              },
+              "schema": {
+                "properties": {
+                  "cadence": {
+                    "enum": [
+                      "off",
+                      "monthly",
+                      "quarterly"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "cadence"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Digest"
+                }
+              }
+            },
+            "description": "The cadence after the change"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "cadence must be off, monthly or quarterly"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "No valid key or session"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Set the summary cadence",
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/v1/account/watch/remove": {
+      "post": {
+        "description": "POST rather than DELETE: credentialed CORS on this API allows GET and POST only.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "key": "grid.gbr.electricity.location_based"
+              },
+              "schema": {
+                "properties": {
+                  "key": {
+                    "example": "grid.gbr.electricity.location_based",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchMutation"
+                }
+              }
+            },
+            "description": "The watchlist after the removal"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "No key in the body"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "No valid key or session"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Stop watching a factor key",
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/v1/calculate/batch": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss.",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "example": "2026.175",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "items": [
+                  {
+                    "input": {
+                      "activity": {
+                        "unit": "MWh",
+                        "value": 5
+                      },
+                      "factor_key": "grid.gbr.electricity.location_based"
+                    },
+                    "methodology": "ghg-activity"
+                  }
+                ]
+              },
+              "schema": {
+                "properties": {
+                  "items": {
+                    "description": "Each item is dispatched to the same handler as its standalone endpoint, so an item may carry its own optional `country` and gets the same factor.resolution back. There is no batch-level country — items in one batch routinely belong to different countries.",
+                    "items": {
+                      "properties": {
+                        "input": {
+                          "type": "object"
+                        },
+                        "methodology": {
+                          "example": "ghg-activity",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "maxItems": 100,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "items"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchCalculation"
+                }
+              }
+            },
+            "description": "Per-item results + summed total"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing/invalid key"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "A malformed item"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Shared calculation capacity full — a deliberate global concurrency cap protecting the origin, not an outage. Honour Retry-After. Identical repeat calls are served from a deterministic cache and never consume capacity."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Batch — up to 100 mixed-methodology calculations in one call",
+        "tags": [
+          "Calculate"
+        ]
+      }
+    },
+    "/v1/calculate/business-travel": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss.",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "example": "2026.175",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "distance": {
+                  "unit": "km",
+                  "value": 800
+                },
+                "factor_key": "business_travel.air.short_haul.average.with_rf",
+                "passengers": 2
+              },
+              "schema": {
+                "properties": {
+                  "country": {
+                    "description": "Optional. The country the ACTIVITY belongs to — ISO3, ISO2 or a name (\"deu\", \"DE\", \"Germany\"). When given, the response carries factor.resolution stating whether the factor used is published for that country (tier: exact), is a global figure applied to it (global), or belongs to a different country (proxy, with proxy_of naming which). Omit it and no geography claim is made — the response is unchanged. A country we do not recognise yields no claim rather than a wrong one.",
+                    "example": "deu",
+                    "type": "string"
+                  },
+                  "distance": {
+                    "properties": {
+                      "unit": {
+                        "example": "km",
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "factor_key": {
+                    "example": "business_travel.air.short_haul.average.with_rf",
+                    "type": "string"
+                  },
+                  "passengers": {
+                    "default": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "distance",
+                  "factor_key"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calculation"
+                }
+              }
+            },
+            "description": "Travel emissions + working + source"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing/invalid key"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unknown factor or incompatible units"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Business travel — distance × passengers × factor",
+        "tags": [
+          "Calculate"
+        ]
+      }
+    },
+    "/v1/calculate/electricity": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss.",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "example": "2026.175",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "consumption": {
+                  "unit": "kWh",
+                  "value": 10000
+                },
+                "location_factor_key": "grid.gbr.electricity.location_based"
+              },
+              "schema": {
+                "properties": {
+                  "consumption": {
+                    "description": "Electricity consumed.",
+                    "properties": {
+                      "unit": {
+                        "description": "kWh | MWh | GWh",
+                        "example": "kWh",
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "country": {
+                    "description": "Optional. The country the ACTIVITY belongs to — ISO3, ISO2 or a name (\"deu\", \"DE\", \"Germany\"). When given, the response carries factor.resolution stating whether the factor used is published for that country (tier: exact), is a global figure applied to it (global), or belongs to a different country (proxy, with proxy_of naming which). Omit it and no geography claim is made — the response is unchanged. A country we do not recognise yields no claim rather than a wrong one.",
+                    "example": "deu",
+                    "type": "string"
+                  },
+                  "location_factor_key": {
+                    "example": "grid.gbr.electricity.location_based",
+                    "type": "string"
+                  },
+                  "market_factor_key": {
+                    "description": "Optional. Market-based factor (e.g. residual mix) for dual reporting.",
+                    "example": "grid.gbr.electricity.residual_mix",
+                    "type": "string"
+                  },
+                  "supplier_factor": {
+                    "description": "Optional contractual factor (green tariff / REC = 0). Wins over market_factor_key.",
+                    "properties": {
+                      "unit": {
+                        "example": "kg CO2e per kWh",
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "consumption",
+                  "location_factor_key"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElectricityCalculation"
+                }
+              }
+            },
+            "description": "Location- and (if given) market-based emissions + working + source"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing/invalid key"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unknown factor or incompatible units"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Scope 2 electricity — location + market (dual reporting)",
+        "tags": [
+          "Calculate"
+        ]
+      }
+    },
+    "/v1/calculate/embodied": {
+      "post": {
+        "description": "Version pinning is NOT available on this engine: the pin resolves keys named `*factor_key`, and this endpoint is addressed by `material_key` (and its per-module rows). Sending ?as_of= here is a 400 rather than a silent fall back to current data — a calculation that carries a receipt has to be the version it claims.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "materials": [
+                  {
+                    "boundary": "A1-A3",
+                    "id": "slab",
+                    "material_key": "materials.concrete.ready_mix.c8_10",
+                    "quantity": {
+                      "unit": "m3",
+                      "value": 12
+                    }
+                  }
+                ]
+              },
+              "schema": {
+                "properties": {
+                  "country": {
+                    "description": "Optional. The country the ACTIVITY belongs to — ISO3, ISO2 or a name (\"deu\", \"DE\", \"Germany\"). When given, the response carries factor.resolution stating whether the factor used is published for that country (tier: exact), is a global figure applied to it (global), or belongs to a different country (proxy, with proxy_of naming which). Omit it and no geography claim is made — the response is unchanged. A country we do not recognise yields no claim rather than a wrong one.",
+                    "example": "deu",
+                    "type": "string"
+                  },
+                  "materials": {
+                    "items": {
+                      "properties": {
+                        "boundary": {
+                          "default": "A1-A3",
+                          "enum": [
+                            "A1-A3",
+                            "A1-A4",
+                            "A1-A5",
+                            "A1-C"
+                          ],
+                          "type": "string"
+                        },
+                        "country": {
+                          "description": "Optional. The country the ACTIVITY belongs to — ISO3, ISO2 or a name (\"deu\", \"DE\", \"Germany\"). When given, the response carries factor.resolution stating whether the factor used is published for that country (tier: exact), is a global figure applied to it (global), or belongs to a different country (proxy, with proxy_of naming which). Omit it and no geography claim is made — the response is unchanged. A country we do not recognise yields no claim rather than a wrong one.",
+                          "example": "deu",
+                          "type": "string"
+                        },
+                        "material_key": {
+                          "example": "materials.concrete.ready_mix.c8_10.module_a1_a3",
+                          "type": "string"
+                        },
+                        "quantity": {
+                          "properties": {
+                            "unit": {
+                              "example": "m3",
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "number"
+                            }
+                          },
+                          "type": "object"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "materials"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmbodiedCalculation"
+                }
+              }
+            },
+            "description": "Per-stage embodied carbon + boundary total; module D separate; data gaps flagged"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Whole-life embodied carbon (EN 15978 modular, boundary-aware)",
+        "tags": [
+          "Calculate"
+        ]
+      }
+    },
+    "/v1/calculate/freight": {
+      "post": {
+        "description": "Send `mass` for a factor denominated per tonne-km, `teu` for one denominated per TEU-km (the sea-container family — a TEU is a twenty-foot container slot, not a mass). Sending the wrong one is refused with 422 `gc_freight_basis_mismatch` rather than silently multiplied.",
+        "parameters": [
+          {
+            "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss.",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "example": "2026.175",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "distance": {
+                  "unit": "km",
+                  "value": 300
+                },
+                "factor_key": "freight.road_hgv.tonne_km",
+                "mass": {
+                  "unit": "t",
+                  "value": 12
+                }
+              },
+              "schema": {
+                "properties": {
+                  "country": {
+                    "description": "Optional. The country the ACTIVITY belongs to — ISO3, ISO2 or a name (\"deu\", \"DE\", \"Germany\"). When given, the response carries factor.resolution stating whether the factor used is published for that country (tier: exact), is a global figure applied to it (global), or belongs to a different country (proxy, with proxy_of naming which). Omit it and no geography claim is made — the response is unchanged. A country we do not recognise yields no claim rather than a wrong one.",
+                    "example": "deu",
+                    "type": "string"
+                  },
+                  "distance": {
+                    "properties": {
+                      "unit": {
+                        "example": "km",
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "factor_key": {
+                    "example": "freight.road_hgv.tonne_km",
+                    "type": "string"
+                  },
+                  "mass": {
+                    "description": "Required for a per-tonne-km factor. Mutually exclusive with teu.",
+                    "properties": {
+                      "unit": {
+                        "example": "t",
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "teu": {
+                    "description": "Required for a per-TEU-km factor (container shipping). A forty-foot box is 2 TEU. Mutually exclusive with mass.",
+                    "properties": {
+                      "unit": {
+                        "example": "teu",
+                        "type": "string"
+                      },
+                      "value": {
+                        "example": 2,
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "distance",
+                  "factor_key"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calculation"
+                }
+              }
+            },
+            "description": "Tonne-km or TEU-km emissions + working + source"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing/invalid key"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unknown factor, or the activity input does not match the factor's denominator"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Freight (GLEC) — the factor's denominator picks the method: mass × distance (tonne-km) or TEU × distance (TEU-km)",
+        "tags": [
+          "Calculate"
+        ]
+      }
+    },
+    "/v1/calculate/ghg-activity": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss.",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "example": "2026.175",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "activity": {
+                  "unit": "MWh",
+                  "value": 5
+                },
+                "factor_key": "grid.gbr.electricity.location_based"
+              },
+              "schema": {
+                "properties": {
+                  "activity": {
+                    "properties": {
+                      "unit": {
+                        "example": "MWh",
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "country": {
+                    "description": "Optional. The country the ACTIVITY belongs to — ISO3, ISO2 or a name (\"deu\", \"DE\", \"Germany\"). When given, the response carries factor.resolution stating whether the factor used is published for that country (tier: exact), is a global figure applied to it (global), or belongs to a different country (proxy, with proxy_of naming which). Omit it and no geography claim is made — the response is unchanged. A country we do not recognise yields no claim rather than a wrong one.",
+                    "example": "deu",
+                    "type": "string"
+                  },
+                  "factor_key": {
+                    "example": "grid.gbr.electricity.location_based",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "activity",
+                  "factor_key"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calculation"
+                }
+              }
+            },
+            "description": "Emissions + working + scope + source"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing/invalid key"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unknown factor or incompatible units"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Activity → emissions (activity × factor, with unit conversion + working + scope)",
+        "tags": [
+          "Calculate"
+        ]
+      }
+    },
+    "/v1/calculate/pcaf": {
+      "post": {
+        "description": "Version pinning is NOT available on this engine: the pin resolves keys named `*factor_key`, and this endpoint is addressed by `sector_key`, or by caller-supplied emissions with no factor at all. Sending ?as_of= here is a 400 rather than a silent fall back to current data — a calculation that carries a receipt has to be the version it claims.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "asset_class": "listed_equity",
+                "holdings": [
+                  {
+                    "company_emissions": {
+                      "unit": "tCO2e",
+                      "value": 42000
+                    },
+                    "data_quality_score": 2,
+                    "denominator": {
+                      "type": "evic",
+                      "value": 120000000
+                    },
+                    "id": "acme-plc",
+                    "outstanding_amount": 5000000
+                  }
+                ]
+              },
+              "schema": {
+                "properties": {
+                  "asset_class": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "Optional. The country the ACTIVITY belongs to — ISO3, ISO2 or a name (\"deu\", \"DE\", \"Germany\"). When given, the response carries factor.resolution stating whether the factor used is published for that country (tier: exact), is a global figure applied to it (global), or belongs to a different country (proxy, with proxy_of naming which). Omit it and no geography claim is made — the response is unchanged. A country we do not recognise yields no claim rather than a wrong one.",
+                    "example": "deu",
+                    "type": "string"
+                  },
+                  "holdings": {
+                    "description": "Each holding may carry its own optional `country`, overriding the request-level one — a portfolio routinely spans economies, and the spend-based intensity used for one borrower may come from a different country than the next.",
+                    "items": {
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "holdings"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PcafCalculation"
+                }
+              }
+            },
+            "description": "Financed emissions + weighted data-quality score + audit"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "PCAF Part A financed emissions (attribution + audit trail)",
+        "tags": [
+          "Calculate"
+        ]
+      }
+    },
+    "/v1/calculate/resolve": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "description": "diesel delivery van"
+              },
+              "schema": {
+                "properties": {
+                  "description": {
+                    "description": "Plain-language description of the factor you need.",
+                    "example": "uk grid electricity",
+                    "type": "string"
+                  },
+                  "limit": {
+                    "default": 5,
+                    "description": "Optional. Number of ranked candidates to return.",
+                    "maximum": 20,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "section": {
+                    "description": "Optional. Restrict candidates to one MB section.",
+                    "example": "fuels",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "description"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resolve"
+                }
+              }
+            },
+            "description": "Ranked candidate factor keys with confidence scores. Each match carries country_iso3 and geo_match (\"exact\" | \"global\" | \"proxy\"); a \"proxy\" match is a factor from a different country than the one asked for, and its confidence is discounted accordingly."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing \"description\""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing/invalid key"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Resolve — plain-text description → ranked factor keys + confidence",
+        "tags": [
+          "Calculate"
+        ]
+      }
+    },
+    "/v1/calculate/spend-based": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Run this calculation against an ARCHIVED data version. Every factor used is the row as it stood at that version, and meta.gc_version, meta.version_pin, the citation and the receipt all report it. Unlike GET /v1/factors/{key}?as_of=, an unavailable version is REFUSED (400) rather than served from current data with a label: a calculation returns a single figure that goes into a report under a receipt, so it must be the version it claims. A factor key that did not exist yet at that version is refused for the same reason. Archived versions are listed in the error, and by GET /v1/factors/{key}?as_of= on a miss.",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "example": "2026.175",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "factor_key": "spend_based.us.naics6.541511.custom_computer_programming_services",
+                "spend": {
+                  "currency": "USD",
+                  "value": 50000
+                }
+              },
+              "schema": {
+                "properties": {
+                  "country": {
+                    "description": "Optional. The country the ACTIVITY belongs to — ISO3, ISO2 or a name (\"deu\", \"DE\", \"Germany\"). When given, the response carries factor.resolution stating whether the factor used is published for that country (tier: exact), is a global figure applied to it (global), or belongs to a different country (proxy, with proxy_of naming which). Omit it and no geography claim is made — the response is unchanged. A country we do not recognise yields no claim rather than a wrong one.",
+                    "example": "deu",
+                    "type": "string"
+                  },
+                  "factor_key": {
+                    "example": "spend_based.us.naics6.541511.custom_computer_programming_services",
+                    "type": "string"
+                  },
+                  "spend": {
+                    "properties": {
+                      "currency": {
+                        "example": "USD",
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "spend",
+                  "factor_key"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calculation"
+                }
+              }
+            },
+            "description": "Spend-based emissions + working + source"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing/invalid key"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Currency mismatch or unknown factor"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Spend-based EEIO — spend × intensity (currency-matched, no FX)",
+        "tags": [
+          "Calculate"
+        ]
+      }
+    },
+    "/v1/changes": {
+      "get": {
+        "description": "Open (no key). Data releases newest first, each with added/changed/withdrawn counts and a link to its per-release record. Derived at publish time from the same delta the reproducibility archive stores, so this feed cannot disagree with ?as_of= about a release. Records begin at the delta watershed (meta.record_begins); earlier versions remain archived and pinnable but are not summarised.",
+        "parameters": [
+          {
+            "example": 20,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "A version from a previous page's next_cursor; resumes after it. Must be at or after meta.record_begins — an earlier version is archived and pinnable but was never summarised, so it cannot be resumed from.",
+            "example": "2026.183",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangesList"
+                }
+              }
+            },
+            "description": "Releases, newest first, with counts"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unknown parameter, bad limit, or unknown cursor — named in the error"
+          }
+        },
+        "security": [],
+        "summary": "Change feed — what each data release changed",
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/v1/changes/{version}": {
+      "get": {
+        "description": "Open (no key). The full entry list for one data release. Each entry is checkable at verify.greencalculus.com/{key}@{version} without an account. A version older than the record (or never published) is a 404 that says which releases are recorded.",
+        "parameters": [
+          {
+            "example": "2026.183",
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangesRelease"
+                }
+              }
+            },
+            "description": "The release record: counts + entries"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "No change record for that version — the error names the recorded range"
+          }
+        },
+        "security": [],
+        "summary": "One release — every row it added, changed or withdrew",
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/v1/corpus": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Corpus"
+                }
+              }
+            },
+            "description": "All factors with values + provenance"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Requires Business plan"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Full consolidated factor feed (Business plan and above)",
+        "tags": [
+          "Bulk"
+        ]
+      }
+    },
+    "/v1/coverage": {
+      "get": {
+        "description": "Open (no key). Per country: how many of 13 inventory families we hold, the row count in each, and a band (complete / partial / minimal). Answer \"do you cover my country?\" before integrating. Derived from the live corpus at request time, so it cannot drift from the data. Measures PRESENCE, not sufficiency — a country showing fuel:7 has seven fuel rows, which may not answer a given question; the response repeats this in a caveat field. Returns counts only, never factor values.",
+        "parameters": [
+          {
+            "description": "One or more ISO-3166 alpha-3 codes, comma-separated.",
+            "example": "gbr,usa",
+            "in": "query",
+            "name": "country",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only countries holding data in this family.",
+            "example": "wtt",
+            "in": "query",
+            "name": "family",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only countries covering at least this many of the 13 families.",
+            "example": 10,
+            "in": "query",
+            "name": "min_score",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Coverage"
+                }
+              }
+            },
+            "description": "Coverage matrix + meta (families, bands, filters) + caveat"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unknown parameter or unknown family — named in the error"
+          }
+        },
+        "security": [],
+        "summary": "Coverage — which countries we hold data for, and how much",
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/v1/factors": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Free text. Every whitespace-separated word must appear in the row name or canonical key (dots/underscores/hyphens read as separators, so a pasted canonical key finds its own row). Results are relevance-ranked.",
+            "example": "UK electricity",
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "grid",
+            "in": "query",
+            "name": "section",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Anchors at the START of the dotted key — \"electricity\" matches nothing; use search for words appearing anywhere.",
+            "example": "grid.gbr",
+            "in": "query",
+            "name": "key_prefix",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Taxonomy family slug (hyphenated). An unknown value returns 200 with an empty result and the valid families listed in meta.warnings.",
+            "example": "grid-electricity",
+            "in": "query",
+            "name": "family",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "base64(canonical_key) from meta.next_cursor. Preferred over offset — stable across data-version bumps, and required for paging relevance-ordered search results.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactorList"
+                }
+              }
+            },
+            "description": "Matching factor keys, names, sections. meta.warnings explains any filter that matched nothing."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "gc_unknown_param — a query parameter this endpoint does not accept. The message names the offender and lists the accepted set. Other 400s: gc_limit_too_large, gc_offset_invalid, gc_cursor_invalid, gc_section_conflict."
+          }
+        },
+        "security": [],
+        "summary": "Browse/search the corpus (open — no key, values included)",
+        "tags": [
+          "Factors"
+        ]
+      }
+    },
+    "/v1/factors/{key}": {
+      "get": {
+        "parameters": [
+          {
+            "example": "grid.gbr.electricity.location_based",
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Serve this factor as it stood at an ARCHIVED data version. On a hit you get the archived row, served_version is the version you asked for, and version_pin reports matched: true, reproducible: true. Two misses, and they behave differently. (1) The version is NOT in the archive: 200 carrying the CURRENT row, with version_pin.matched: false naming as_of_requested and listing every archived version available — unlike POST /v1/calculate/*?as_of=, which 400s instead. So read version_pin before treating a response as pinned; do not infer it from the status code. (2) The version IS archived but holds no row for this key — it did not exist yet, or was withdrawn at or before it: 404 not_found, naming the key and the version, and saying whether the key is in the CURRENT corpus so a real absence is distinguishable from a mistyped key. GET /v1/factors/{key}/history lists every version that recorded it. Case (2) returned 200 with the current value in a browse envelope until 2026-09-10; it now refuses, because serving a current value under a past version label is the one answer this endpoint must never give.",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "example": "2026.175",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactorLookup"
+                }
+              }
+            },
+            "description": "Factor with value, source id, source reference, data version"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing/invalid key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactorMiss"
+                }
+              }
+            },
+            "description": "Unknown key, or a key with no row at the requested ?as_of= version"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Resolve one factor by canonical key (value + full provenance)",
+        "tags": [
+          "Factors"
+        ]
+      }
+    },
+    "/v1/factors/{key}/history": {
+      "get": {
+        "description": "Every version the reproducibility archive holds for one key, with the value each version served and whether it was a change or a withdrawal. Derived from the same per-key archive index and the same read that answers ?as_of=, so it cannot disagree with the archive. Requires a key (any tier). History begins at the delta watershed; a short list means a stable factor, and the payload says so.",
+        "parameters": [
+          {
+            "example": "grid.gbr.electricity.location_based",
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactorHistory"
+                }
+              }
+            },
+            "description": "Current row + per-version history entries"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing or invalid API key"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Key unknown to both the corpus and the archive"
+          }
+        },
+        "summary": "Version history — what this factor has been",
+        "tags": [
+          "Factors"
+        ]
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [],
+        "summary": "Service health",
+        "tags": [
+          "Factors"
+        ]
+      }
+    },
+    "/v1/openapi.json": {
+      "get": {
+        "description": "Open (no key). Also served at /openapi.json. Point a generator, Postman or your editor at it.",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiDocument"
+                }
+              }
+            },
+            "description": "The OpenAPI 3.1 description of this API"
+          }
+        },
+        "security": [],
+        "summary": "This document",
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/v1/roadmap": {
+      "get": {
+        "description": "Open (no key). Rebuilt daily from 90 days of misses, never hand-edited. A key appears only after crossing meta.floor requests, which is what separates demand from one-off probes; naming misses the API recovered with suggestions are excluded as discovery bugs rather than data gaps. An empty list is a statement about the record, not about demand, and meta.note says which.",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Roadmap"
+                }
+              }
+            },
+            "description": "Recorded gaps, most-requested first"
+          }
+        },
+        "security": [],
+        "summary": "The sourcing queue — factor gaps the telemetry actually recorded",
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/v1/sources/{id}": {
+      "get": {
+        "description": "Open (no key). Every row we hold from one public-domain publisher, with that publisher's licence, issuing body and retrieval date, and the exact source reference behind each value. Feeds exist for a NAMED SET of sources, not for every source id in the corpus — a source we have not cleared for republication has no feed, and asks for one are refused rather than quietly answered from somewhere else. The id is case-insensitive. Everything else in the corpus is readable through GET /v1/factors, which carries the same values, provenance and licence per row.",
+        "parameters": [
+          {
+            "description": "Source id, case-insensitive. Currently DEFRA_2026, DEFRA_2025, EMBER_YEARLY_ELECTRICITY_2025.",
+            "example": "defra_2026",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceFeed"
+                }
+              }
+            },
+            "description": "The publisher record plus every factor transcribed from it"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "No feed for that source id. The error names the ids that do have one."
+          }
+        },
+        "security": [],
+        "summary": "Source feed — one publisher's dataset, whole",
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/v1/status": {
+      "get": {
+        "description": "Open (no key). Current operational state, uptime over 24h/7d/30d, and a log of healthy/degraded transitions. Measured by a probe running every ~5 minutes against the edge factor store, the WordPress origin and a real calculation round-trip. The probe runs INSIDE this Worker and therefore cannot observe the Worker being entirely down — the response says so rather than implying total coverage.",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            },
+            "description": "Status, uptime percentages, transitions, caveat"
+          }
+        },
+        "security": [],
+        "summary": "Status — current health and measured uptime",
+        "tags": [
+          "Discovery"
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "servers": [
+    {
+      "description": "Production",
+      "url": "https://api.greencalculus.com"
+    }
+  ],
+  "tags": [
+    {
+      "description": "Emission-factor lookup and browse",
+      "name": "Factors"
+    },
+    {
+      "description": "Audit-traced calculation engines",
+      "name": "Calculate"
+    },
+    {
+      "description": "Consolidated corpus feed",
+      "name": "Bulk"
+    },
+    {
+      "description": "The spec, the change feed, coverage, absence and the sourcing roadmap",
+      "name": "Discovery"
+    },
+    {
+      "description": "Watchlists and the reporting-period diff — the alerting half of the API",
+      "name": "Account"
+    }
+  ]
+}

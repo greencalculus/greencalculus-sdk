@@ -97,6 +97,7 @@ Listed on the [official MCP registry](https://registry.modelcontextprotocol.io) 
 ## Links
 
 - **Docs:** https://greencalculus.com/developers/docs
+- **OpenAPI 3.1 spec:** [`spec/openapi.json`](./spec/openapi.json) · live at https://api.greencalculus.com/openapi.json
 - **Data rights, continuity & redistribution:** https://greencalculus.com/developers/trust
 - **Status:** https://greencalculus.com/developers/status
 - **Contributing:** [CONTRIBUTING.md](./CONTRIBUTING.md) · **Security:** [SECURITY.md](./SECURITY.md)
