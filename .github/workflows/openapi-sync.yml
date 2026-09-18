@@ -1,0 +1,51 @@
+# The gateway is the authority for the spec; spec/openapi.json is a published
+# mirror so that GitHub code search, API directories and codegen can find it.
+#
+# A committed copy of a remote truth is a stale copy waiting to happen, so this
+# re-reads the remote weekly and commits any change. If the fetch fails the job
+# fails loudly rather than silently leaving yesterday's contract in place.
+name: openapi-sync
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"      # Mondays, 03:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the live spec
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 3 --retry-delay 5 \
+            https://api.greencalculus.com/openapi.json -o /tmp/live.json
+          python3 - <<'PY'
+          import json, sys, pathlib
+          spec = json.loads(pathlib.Path("/tmp/live.json").read_text())
+          # Refuse to commit a response that parsed but is not a spec: an error
+          # page or an edge-cache stub would otherwise overwrite a good mirror.
+          assert spec.get("openapi", "").startswith("3."), "not an OpenAPI 3.x document"
+          assert len(spec.get("paths") or {}) >= 20, f"only {len(spec.get('paths') or {})} paths — refusing"
+          pathlib.Path("spec/openapi.json").write_text(
+              json.dumps(spec, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
+          print(f"{len(spec['paths'])} paths, openapi {spec['openapi']}")
+          PY
+
+      - name: Commit if it changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- spec/openapi.json; then
+            echo "no change"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add spec/openapi.json
+          git commit -m "spec: sync openapi.json from the live gateway"
+          git push
