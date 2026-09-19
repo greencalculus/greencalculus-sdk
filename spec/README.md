@@ -8,11 +8,13 @@ The authority is the gateway, which serves it at
 <https://api.greencalculus.com/openapi.json>. That URL is what
 `postman/generate.py` reads, and it is the one to integrate against.
 
-But a live URL is not a discoverable one. It was not linked from the developer
-docs, it is not in any repository, and nothing that crawls GitHub could find it.
-A spec that tools cannot discover is, for most purposes, a spec that does not
-exist — the same point `src/openapi.ts` makes upstream about a capability absent
-from the machine-readable contract.
+But a documented URL is not the same as a discoverable file. The API reference
+at <https://greencalculus.com/developers/docs/> has documented this spec all
+along, under "OpenAPI & clients", with a runnable `curl` and instructions to
+point openapi-generator, Postman or Insomnia at it. What was missing is narrower
+and purely mechanical: the spec existed in no repository, so nothing that crawls
+or code-searches GitHub could reach it, and no API directory could index it from
+a file.
 
 So this is a published mirror, for GitHub code search, API directories, codegen
 and coding assistants.
