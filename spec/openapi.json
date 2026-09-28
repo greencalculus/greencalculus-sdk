@@ -1420,13 +1420,50 @@
               "null"
             ]
           },
+          "issuer": {
+            "description": "The issuing descriptor of this edition (MB `body`), present only when it differs from publisher.",
+            "type": "string"
+          },
           "licence": {
             "type": [
               "string",
               "null"
             ]
           },
+          "overrides_source": {
+            "description": "Present only when this row carries a licence its source does not (a publisher republishing third-party data under its own terms, e.g. CBAM Annex II). licence, redistributable and redistributable_basis above are then the ROW's; this block keeps the source's own answer beside them.",
+            "properties": {
+              "attribution_required": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "since": {
+                "description": "Data version at which the row-level answer was recorded.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "source_redistributable": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "source_ref": {
+                "description": "Where the restricting text was read.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          },
           "publisher": {
+            "description": "The organisation, in one spelling (MB `publisher`).",
             "type": [
               "string",
               "null"
