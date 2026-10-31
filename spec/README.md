@@ -1,6 +1,6 @@
 # OpenAPI
 
-`openapi.json` — the OpenAPI 3.1 description of the GreenCalculus API, 26 paths.
+`openapi.json` — the OpenAPI 3.1 description of the GreenCalculus API, 28 paths.
 
 ## Why it is committed here as well as served live
 

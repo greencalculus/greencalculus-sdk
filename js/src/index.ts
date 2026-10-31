@@ -190,6 +190,10 @@ export class GreenCalculus {
   businessTravel(body: Body): Promise<Json> {
     return this.calculate("business-travel", body);
   }
+  /** IMO Carbon Intensity Indicator and A-E rating, 2023-2030 (MARPOL Annex VI reg. 28). */
+  cii(body: Body): Promise<Json> {
+    return this.calculate("cii", body);
+  }
   /** Run many calculations in one request; each item names a `methodology`. */
   batch(items: Body[]): Promise<Json> {
     return this.calculate("batch", { items });

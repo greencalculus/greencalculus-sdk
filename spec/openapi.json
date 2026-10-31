@@ -152,7 +152,7 @@
       },
       "Calculation": {
         "additionalProperties": true,
-        "description": "The SINGLE-FACTOR engines — ghg-activity, freight, spend-based and business-travel. The full working, never just a total. The block echoing your input is named per engine (activity | transport | spend | trip); everything else below is shared. The other four engines answer a different question and have their own schemas: ElectricityCalculation, PcafCalculation, EmbodiedCalculation, BatchCalculation.",
+        "description": "The SINGLE-FACTOR engines — ghg-activity, freight, spend-based and business-travel. The full working, never just a total. The block echoing your input is named per engine (activity | transport | spend | trip); everything else below is shared. The other five engines answer a different question and have their own schemas: ElectricityCalculation, PcafCalculation, EmbodiedCalculation, CiiCalculation, BatchCalculation.",
         "properties": {
           "activity": {
             "additionalProperties": true,
@@ -496,6 +496,121 @@
             },
             "description": "Row count per status.",
             "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "CiiCalculation": {
+        "additionalProperties": true,
+        "description": "IMO Carbon Intensity Indicator of one ship for one calendar year, with its A-E rating and the same ship rated for every year 2023-2030. Every IMO parameter used is listed under `parameters` with its MasterBrain key and citation.",
+        "properties": {
+          "applies": {
+            "description": "false below 5,000 GT, where the CII does not apply.",
+            "type": "boolean"
+          },
+          "attained_cii": {
+            "additionalProperties": true,
+            "description": "{ value, unit, corrected } in g CO2 per DWT- or GT-nautical mile; `corrected` is true when a G5 correction changed it.",
+            "type": "object"
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/Attribution"
+          },
+          "boundaries": {
+            "additionalProperties": true,
+            "description": "superior, lower, upper, inferior: exp(d1..d4) x required CII (G4).",
+            "type": "object"
+          },
+          "corrective_action": {
+            "additionalProperties": true,
+            "description": "{ required, reason }: an E, or a third D in a row given previous_ratings (regulation 28.8).",
+            "type": "object"
+          },
+          "emissions": {
+            "additionalProperties": true,
+            "description": "{ value, unit: \"kg CO2\", tonnes }: fuel x CF before G5 deductions. Kilograms, like every other engine, so a batch total adds like with like.",
+            "type": "object"
+          },
+          "first_d_or_e_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CalcMeta"
+          },
+          "methodology": {
+            "example": "cii",
+            "type": "string"
+          },
+          "parameters": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "description": "Each parameter used: { key, name, value, unit, citation }.",
+            "type": "object"
+          },
+          "proof_urls": {
+            "$ref": "#/components/schemas/ProofUrls"
+          },
+          "rating": {
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "type": "string"
+          },
+          "ratio": {
+            "description": "attained / required.",
+            "type": "number"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/Receipt"
+          },
+          "reference_cii": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "required_cii": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "ship": {
+            "additionalProperties": true,
+            "description": "Echo of the ship, plus `capacity_used`: the capacity in the formula, fixed by G2 for bulk carriers of 279,000 DWT and above, LNG carriers under 65,000 DWT and vehicle carriers of 57,700 GT and above.",
+            "type": "object"
+          },
+          "standard": {
+            "type": "string"
+          },
+          "to_hold_c": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "transport_work": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "working": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "year": {
+            "example": 2026,
+            "type": "integer"
+          },
+          "years": {
+            "description": "The same ship rated for each year 2023-2030.",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
           }
         },
         "type": "object"
@@ -2831,6 +2946,227 @@
           }
         ],
         "summary": "Business travel — distance × passengers × factor",
+        "tags": [
+          "Calculate"
+        ]
+      }
+    },
+    "/v1/calculate/cii": {
+      "post": {
+        "description": "MARPOL Annex VI regulation 28 with the IMO guidelines G1 (MEPC.352(78) as amended by MEPC.412(84)), G2 (MEPC.353(78)), G3 (MEPC.400(83)), G4 (MEPC.354(78)) and G5 (MEPC.355(78)). Capacity is DWT for cargo ships and GT for ro-ro, ro-pax and cruise ships. Unknown fields are a 400, so a misspelt correction is never silently ignored. Version pinning is NOT available on this engine: the pin resolves keys named `*factor_key`, and this endpoint reads its parameters by ship type. Sending ?as_of= here is a 400.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "capacity": 62000,
+                "distance_nm": 60045,
+                "fuel": [
+                  {
+                    "fuel": "hfo",
+                    "tonnes": 5602.76
+                  }
+                ],
+                "ship_type": "bulk",
+                "year": 2026
+              },
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "capacity": {
+                    "description": "DWT (bulk, gas, tanker, container, gencargo, reefer, combination, lng) or GT (vehicle, roro, ropax, ropax_hsc, cruise).",
+                    "type": "number"
+                  },
+                  "corrections": {
+                    "additionalProperties": false,
+                    "description": "G5 corrections (MEPC.355(78)).",
+                    "properties": {
+                      "capacity_correction": {
+                        "description": "fi x fm x fc x fiVSE.",
+                        "type": "number"
+                      },
+                      "deductible_fuel_t": {
+                        "type": "number"
+                      },
+                      "reefer_days": {
+                        "type": "number"
+                      },
+                      "sfoc": {
+                        "enum": [
+                          "2s",
+                          "4s"
+                        ],
+                        "type": "string"
+                      },
+                      "sts_fuel_t": {
+                        "type": "number"
+                      },
+                      "tanker": {
+                        "enum": [
+                          "none",
+                          "sts",
+                          "shuttle"
+                        ],
+                        "type": "string"
+                      },
+                      "voyage_distance_nm": {
+                        "type": "number"
+                      },
+                      "voyage_fuel_t": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "distance_nm": {
+                    "description": "Distance sailed in the calendar year, nautical miles.",
+                    "type": "number"
+                  },
+                  "fuel": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "fuel": {
+                          "enum": [
+                            "mdo",
+                            "lfo",
+                            "hfo",
+                            "lng",
+                            "propane",
+                            "butane",
+                            "ethane",
+                            "methanol",
+                            "ethanol"
+                          ],
+                          "type": "string"
+                        },
+                        "tonnes": {
+                          "exclusiveMinimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "fuel",
+                        "tonnes"
+                      ],
+                      "type": "object"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "gross_tonnage": {
+                    "description": "Optional: for the 5,000 GT applicability test when capacity is DWT.",
+                    "type": "number"
+                  },
+                  "previous_ratings": {
+                    "description": "The year before `year` first.",
+                    "items": {
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        "D",
+                        "E"
+                      ],
+                      "type": "string"
+                    },
+                    "maxItems": 2,
+                    "type": "array"
+                  },
+                  "ship_type": {
+                    "enum": [
+                      "bulk",
+                      "gas",
+                      "tanker",
+                      "container",
+                      "gencargo",
+                      "reefer",
+                      "combination",
+                      "lng",
+                      "vehicle",
+                      "roro",
+                      "ropax",
+                      "ropax_hsc",
+                      "cruise"
+                    ],
+                    "type": "string"
+                  },
+                  "year": {
+                    "maximum": 2030,
+                    "minimum": 2023,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "ship_type",
+                  "capacity",
+                  "distance_nm",
+                  "year",
+                  "fuel"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CiiCalculation"
+                }
+              }
+            },
+            "description": "Rating, attained/required/reference CII, boundaries, 2023-2030 table, cited parameters"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "A missing, unknown or malformed field; the message names it. Also ?as_of=."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing/invalid key"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "A year with no reduction factor, or corrections that cannot combine"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "The IMO parameters are unavailable, or shared calculation capacity is full"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "IMO CII — a ship's carbon intensity and its A-E rating, 2023-2030",
         "tags": [
           "Calculate"
         ]

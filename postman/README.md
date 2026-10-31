@@ -1,9 +1,9 @@
 # Postman collection
 
 `greencalculus.postman_collection.json` — the whole API as a Postman v2.1
-collection: **28 requests across 5 folders, 10 of which need no API key.**
+collection: **30 requests across 5 folders, 11 of which need no API key.**
 
-Import it and the ten keyless requests run immediately. That is the point of
+Import it and the eleven keyless requests run immediately. That is the point of
 the collection: the corpus is open to read, so browsing factors, the change
 feed, coverage, the absence register and a publisher's whole source feed all
 answer before you have signed up for anything.
@@ -34,7 +34,7 @@ regeneration silently reverts it.
 
 Generation is an event, though, not a property the file keeps: from the moment
 it was committed, this collection and the spec became two independently
-editable copies of the same 28 examples. `check-collection-parity.mjs` is what
+editable copies of the same 30 examples. `check-collection-parity.mjs` is what
 makes "generated" stay true — it re-reads the live spec and fails the build if
 the two documents have drifted apart.
 
@@ -47,7 +47,7 @@ actually runs keyless is a request nobody pastes.
 
 ```
 node check-collection.mjs                              # the keyless ten
-GREENCALCULUS_API_KEY=gc_… node check-collection.mjs   # all 28
+GREENCALCULUS_API_KEY=gc_… node check-collection.mjs   # all 30
 node check-collection-parity.mjs                       # still the same as the spec?
 ```
 

@@ -87,7 +87,8 @@ gc.freight(mass={"value": 1, "unit": "tonne"},
            factor_key="freight.rail.tonne_km")
 ```
 
-Also available: `electricity`, `spend_based`, `business_travel`, and
+Also available: `electricity`, `spend_based`, `business_travel`, `cii` (IMO ship
+CII rating), and
 `batch(items=[...])`. Any methodology works via `gc.calculate("<methodology>", **body)`.
 Plain language to the right factor: `gc.resolve("UK grid electricity")`.
 

@@ -86,7 +86,7 @@ await gc.freight({
 });
 ```
 
-Also: `electricity`, `spendBased`, `businessTravel`, and `batch([...])`. Any methodology via `gc.calculate("<methodology>", body)`.
+Also: `electricity`, `spendBased`, `businessTravel`, `cii` (IMO ship CII rating), and `batch([...])`. Any methodology via `gc.calculate("<methodology>", body)`.
 
 ## CO2.js
 

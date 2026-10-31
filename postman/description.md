@@ -13,7 +13,7 @@ That proof link resolves the value **as it stood at that data version**. So a re
 
 ## Press Send right now
 
-**Ten of these 28 requests need no key and no signup.** Everything in **Discovery** is open: browse the corpus, read the change feed, check country coverage, and see which factors we deliberately *don't* hold and why. Open any of them and send it — nothing to configure.
+**Eleven of these 30 requests need no key and no signup.** Everything in **Discovery** is open: browse the corpus, read the change feed, check country coverage, and see which factors we deliberately *don't* hold and why. Open any of them and send it — nothing to configure.
 
 ## For the other eighteen
 
