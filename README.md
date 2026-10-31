@@ -69,7 +69,7 @@ print(r["emissions"]["value"], r["source"]["id"])
 ## What you get
 
 - **16,000+ sourced factors** across grid, fuels, freight, refrigerants, AFOLU, CBAM, construction and spend-based EEIO. Every value returns its source reference, licence and uncertainty.
-- **Seven calculation engines** — GHG Protocol activity, PCAF financed emissions, embodied EN 15978, electricity, freight, spend-based, business travel. The full working, never just a total.
+- **Eight calculation engines** — GHG Protocol activity, PCAF financed emissions, embodied EN 15978, electricity, freight, spend-based, business travel, IMO ship CII rating. The full working, never just a total.
 - **Reproducible** — a deterministic receipt hash on every result, and `as_of=` pins any factor to a past data version so a figure re-runs identically in an audit.
 - **Checkable by the reader** — every factor has a permanent verification page showing the publisher, the document, the exact place within it and whether it may be republished.
 - **Agent-native** — the same data over MCP at `mcp.greencalculus.com`.
@@ -82,7 +82,7 @@ GreenCalculus runs as a remote MCP server, so Claude — or any MCP client — c
 { "mcpServers": { "greencalculus": { "url": "https://mcp.greencalculus.com", "headers": { "Authorization": "Bearer gc_live_..." } } } }
 ```
 
-**12 tools:** `lookup_factor` · `lookup_factors` · `search_factors` · `resolve_factor` · `explain_absence` · `calculate_activity` · `calculate_embodied` · `calculate_pcaf` · `calculate_electricity` · `calculate_freight` · `calculate_spend` · `calculate_business_travel`
+**13 tools:** `lookup_factor` · `lookup_factors` · `search_factors` · `resolve_factor` · `explain_absence` · `calculate_activity` · `calculate_embodied` · `calculate_pcaf` · `calculate_electricity` · `calculate_freight` · `calculate_spend` · `calculate_business_travel` · `calculate_cii`
 
 `lookup_factors` batches a list of keys into one call instead of one per key; `explain_absence` answers why a factor you expected is not there, which is usually the question behind "do you have X?".
 

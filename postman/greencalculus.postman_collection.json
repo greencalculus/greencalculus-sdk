@@ -322,7 +322,7 @@
           "response": []
         },
         {
-          "name": "Freight (GLEC) — mass × distance × factor (tonne-km)",
+          "name": "Freight (GLEC) — the factor's denominator picks the method: mass × distance (tonne-km) or TEU × distance (TEU-km)",
           "request": {
             "method": "POST",
             "header": [
@@ -349,7 +349,7 @@
                 }
               ]
             },
-            "description": "Freight (GLEC) — mass × distance × factor (tonne-km)",
+            "description": "Send `mass` for a factor denominated per tonne-km, `teu` for one denominated per TEU-km (the sea-container family — a TEU is a twenty-foot container slot, not a mass). Sending the wrong one is refused with 422 `gc_freight_basis_mismatch` rather than silently multiplied.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"mass\": {\n    \"value\": 12,\n    \"unit\": \"t\"\n  },\n  \"distance\": {\n    \"value\": 300,\n    \"unit\": \"km\"\n  },\n  \"factor_key\": \"freight.road_hgv.tonne_km\"\n}",
@@ -435,6 +435,40 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"distance\": {\n    \"value\": 800,\n    \"unit\": \"km\"\n  },\n  \"passengers\": 2,\n  \"factor_key\": \"business_travel.air.short_haul.average.with_rf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "IMO CII — a ship's carbon intensity and its A-E rating, 2023-2030",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/calculate/cii",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "calculate",
+                "cii"
+              ]
+            },
+            "description": "MARPOL Annex VI regulation 28 with the IMO guidelines G1 (MEPC.352(78) as amended by MEPC.412(84)), G2 (MEPC.353(78)), G3 (MEPC.400(83)), G4 (MEPC.354(78)) and G5 (MEPC.355(78)). Capacity is DWT for cargo ships and GT for ro-ro, ro-pax and cruise ships. Unknown fields are a 400, so a misspelt correction is never silently ignored. Version pinning is NOT available on this engine: the pin resolves keys named `*factor_key`, and this endpoint reads its parameters by ship type. Sending ?as_of= here is a 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ship_type\": \"bulk\",\n  \"capacity\": 62000,\n  \"distance_nm\": 60045,\n  \"year\": 2026,\n  \"fuel\": [\n    {\n      \"fuel\": \"hfo\",\n      \"tonnes\": 5602.76\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -782,6 +816,42 @@
               ]
             },
             "description": "Open (no key). Every row we hold from one public-domain publisher, with that publisher's licence, issuing body and retrieval date, and the exact source reference behind each value. Feeds exist for a NAMED SET of sources, not for every source id in the corpus — a source we have not cleared for republication has no feed, and asks for one are refused rather than quietly answered from somewhere else. The id is case-insensitive. Everything else in the corpus is readable through GET /v1/factors, which carries the same values, provenance and licence per row.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check — which published factor is each of your numbers, and is it still right?",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "check"
+              ]
+            },
+            "description": "Open (no key), up to 25 rows per request, limited per IP. Send the factors your inventory already uses, each as a description, the value AS TYPED (a string keeps its precision: \"0.207\" matches anything that rounds to it) and the unit as written. Each row comes back with the published factor it matches (source, edition, line), a status (current, outdated, fix, review, unverifiable, notcomparable), findings such as an old edition, old IPCC warming values, a 1,000x unit slip, net instead of gross calorific value or an upstream (WTT) factor used for combustion, and the current value to use instead. UK government factors carry every edition 2019-2026 except 2021; other sources are current-edition only, so a non-UK value can be identified but not yet called out of date. Nothing is substituted, and the request body is neither logged nor stored.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rows\": [\n    {\n      \"description\": \"Purchased electricity\",\n      \"value\": \"0.19338\",\n      \"unit\": \"kgCO2e/kWh\"\n    },\n    {\n      \"description\": \"R-410A\",\n      \"value\": \"2088\",\n      \"unit\": \"GWP\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "auth": {
               "type": "noauth"
             }

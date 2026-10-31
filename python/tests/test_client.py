@@ -84,6 +84,7 @@ class RefusesRatherThanGuesses(unittest.TestCase):
                 lambda: gc.ghg_activity(activity={}),
                 lambda: gc.pcaf(holdings=[]),
                 lambda: gc.embodied(materials=[]),
+                lambda: gc.cii(ship_type="bulk"),
                 lambda: gc.batch([]),
             ):
                 with self.assertRaises(GreenCalculusError):

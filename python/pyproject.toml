@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "greencalculus"
-version = "0.2.0"
+version = "0.3.0"
 description = "The carbon-accounting API — sourced emission factors and audit-traced calculations, every value traceable to its source."
 readme = "README.md"
 requires-python = ">=3.9"

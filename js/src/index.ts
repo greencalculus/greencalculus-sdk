@@ -41,7 +41,7 @@ export class GreenCalculusError extends Error {
 type Body = Record<string, unknown>;
 type Json = Record<string, any>;
 
-const VERSION = "0.2.3";
+const VERSION = "0.3.0";
 const SIGNUP_URL = "https://greencalculus.com/developers/welcome?plan=free&ref=sdk-js";
 
 export class GreenCalculus {
@@ -189,6 +189,10 @@ export class GreenCalculus {
   }
   businessTravel(body: Body): Promise<Json> {
     return this.calculate("business-travel", body);
+  }
+  /** IMO Carbon Intensity Indicator and A-E rating, 2023-2030 (MARPOL Annex VI reg. 28). */
+  cii(body: Body): Promise<Json> {
+    return this.calculate("cii", body);
   }
   /** Run many calculations in one request; each item names a `methodology`. */
   batch(items: Body[]): Promise<Json> {

@@ -31,7 +31,7 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __all__ = ["GreenCalculus", "GreenCalculusError"]
 
 DEFAULT_BASE_URL = "https://api.greencalculus.com"
@@ -187,7 +187,7 @@ class GreenCalculus:
     # ── calculations ─────────────────────────────────────────────────────
     def calculate(self, methodology: str, **body: Any) -> Dict[str, Any]:
         """Run a calculation. ``methodology`` is one of: ghg-activity, pcaf,
-        embodied, electricity, freight, spend-based, business-travel, batch."""
+        embodied, electricity, freight, spend-based, business-travel, cii, batch."""
         self._require_key("Calculations")
         return self._request("POST", "/v1/calculate/" + methodology, body=body)
 
@@ -218,6 +218,11 @@ class GreenCalculus:
     def business_travel(self, **body: Any) -> Dict[str, Any]:
         """Business travel (passenger transport)."""
         return self.calculate("business-travel", **body)
+
+    def cii(self, **body: Any) -> Dict[str, Any]:
+        """IMO Carbon Intensity Indicator and A-E rating, 2023-2030 (MARPOL Annex VI reg. 28).
+        ship_type, capacity (DWT or GT), distance_nm, year, fuel=[{"fuel": "hfo", "tonnes": ...}]."""
+        return self.calculate("cii", **body)
 
     def batch(self, items: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Run many calculations in one request. Each item names a `methodology`
